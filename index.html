@@ -533,59 +533,7 @@
 
             `;
             
-            // เพิ่มฟังก์ชัน logout
-            shadow.getElementById('logoutButton').addEventListener('click', function() {
-                auth.signOut().then(() => {
-                    showLoginForm();
-                }).catch((error) => {
-                    console.error("Error signing out: ", error);
-                });
-            });
-            
-            // เพิ่มโค้ด JavaScript ที่จำเป็นสำหรับ web app ของคุณที่นี่
-            // หมายเหตุ: คุณสามารถเพิ่ม script tag ใน shadow.innerHTML ด้านบนได้
-            // หรือเพิ่มโค้ด JavaScript ที่นี่โดยใช้ shadow.getElementById() เพื่อเข้าถึงองค์ประกอบใน Shadow DOM
-        }
-        
-        function shakeForm() {
-            loginForm.classList.add('shake');
-            setTimeout(() => {
-                loginForm.classList.remove('shake');
-            }, 500);
-        }
-        
-        function getErrorMessage(errorCode) {
-            switch(errorCode) {
-                case 'auth/invalid-email':
-                    return 'อีเมลไม่ถูกต้อง';
-                case 'auth/user-disabled':
-                    return 'บัญชีนี้ถูกระงับการใช้งาน';
-                case 'auth/user-not-found':
-                    return 'ไม่พบบัญชีผู้ใช้นี้';
-                case 'auth/wrong-password':
-                    return 'รหัสผ่านไม่ถูกต้อง';
-                case 'auth/email-already-in-use':
-                    return 'อีเมลนี้ถูกใช้งานแล้ว';
-                case 'auth/weak-password':
-                    return 'รหัสผ่านไม่ปลอดภัย กรุณาใช้รหัสผ่านที่มีความยาวอย่างน้อย 6 ตัวอักษร';
-                case 'auth/popup-closed-by-user':
-                    return 'การเข้าสู่ระบบถูกยกเลิก กรุณาลองใหม่อีกครั้ง';
-                default:
-                    return 'เกิดข้อผิดพลาด: ' + errorCode;
-            }
-        }
-        
-        // ป้องกันการรีเฟรชค้าง
-        window.addEventListener('beforeunload', function(e) {
-            if (loadingOverlay.classList.contains('hidden')) {
-                return;
-            }
-            
-            // Cancel the event
-            e.preventDefault();
-            // Chrome requires returnValue to be set
-            e.returnValue = '';
-        });
+ 
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9544d39e742a8321',t:'MTc1MDY5MDUyOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
