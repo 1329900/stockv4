@@ -6,178 +6,182 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เข้าสู่ระบบ</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
-        
         body {
             font-family: 'Prompt', sans-serif;
             background-color: #f3f4f6;
-            margin: 0;
-            padding: 0;
         }
-        
-        .loader {
-            border: 4px solid rgba(255, 255, 255, 0.3);
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            overflow: hidden;
+        }
+        .login-header {
+            background-color: #0f4c2e;
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #0f4c2e;
+            box-shadow: 0 0 0 3px rgba(15, 76, 46, 0.2);
+        }
+        .btn-login {
+            background-color: #0f4c2e;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            width: 100%;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-login:hover {
+            background-color: #0a3622;
+        }
+        .btn-register {
+            background-color: #4b5563;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            width: 100%;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-register:hover {
+            background-color: #374151;
+        }
+        .app-container {
+            display: none;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #0f4c2e;
             border-radius: 50%;
-            border-top: 4px solid #ffffff;
-            width: 24px;
-            height: 24px;
             animation: spin 1s linear infinite;
-            display: inline-block;
-            vertical-align: middle;
-            margin-right: 8px;
         }
-        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
-        .fade-in {
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .shake {
-            animation: shake 0.5s;
-        }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        @font-face {
+            font-family: 'Prompt';
+            src: url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-    <div id="mainContainer" class="w-full max-w-6xl mx-auto">
-        <!-- Auth System Container -->
-        <div id="authSystem" class="w-full">
-            <!-- Login Container -->
-            <div id="loginContainer" class="w-full max-w-md fade-in mx-auto">
-                <div class="bg-white rounded-lg shadow-xl overflow-hidden">
-                    <!-- Header -->
-                    <div class="bg-green-800 p-6 text-center">
-                        <h1 class="text-2xl font-bold text-white">ยินดีต้อนรับ</h1>
-                        <p class="text-green-100 mt-1">กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ</p>
-                    </div>
-                    
-                    <!-- Login Form -->
-                    <div class="p-6">
-                        <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
-                        <div id="successMessage" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4"></div>
-                        
-                        <form id="loginForm">
-                            <div class="mb-4">
-                                <label for="email" class="block text-gray-700 text-sm font-medium mb-2">อีเมล</label>
-                                <input type="email" id="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="กรอกอีเมลของคุณ" required>
-                            </div>
-                            
-                            <div class="mb-6">
-                                <label for="password" class="block text-gray-700 text-sm font-medium mb-2">รหัสผ่าน</label>
-                                <input type="password" id="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="กรอกรหัสผ่านของคุณ" required>
-                            </div>
-                            
-                            <div class="flex items-center justify-between mb-6">
-                                <div class="flex items-center">
-                                    <input type="checkbox" id="remember" class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
-                                    <label for="remember" class="ml-2 block text-sm text-gray-700">จดจำฉัน</label>
-                                </div>
-                                
-                                <div>
-                                    <a href="#" class="text-sm text-green-700 hover:text-green-900">ลืมรหัสผ่าน?</a>
-                                </div>
-                            </div>
-                            
-                            <button type="submit" id="loginButton" class="w-full bg-green-800 text-white py-2 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50 transition duration-200">
-                                เข้าสู่ระบบ
-                            </button>
-                        </form>
-                        
-                        <div class="mt-6 text-center">
-                            <p class="text-sm text-gray-600">หรือเข้าสู่ระบบด้วย</p>
-                            <div class="flex justify-center space-x-4 mt-3">
-                                <button id="googleLogin" class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-200">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/>
-                                    </svg>
-                                    Google
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-6 text-center">
-                            <p class="text-sm text-gray-600">ยังไม่มีบัญชี? <a href="#" id="registerLink" class="text-green-700 hover:text-green-900">สมัครสมาชิก</a></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Register Container -->
-            <div id="registerContainer" class="w-full max-w-md hidden mx-auto">
-                <div class="bg-white rounded-lg shadow-xl overflow-hidden">
-                    <!-- Header -->
-                    <div class="bg-green-800 p-6 text-center">
-                        <h1 class="text-2xl font-bold text-white">สมัครสมาชิก</h1>
-                        <p class="text-green-100 mt-1">สร้างบัญชีใหม่เพื่อเข้าใช้งานระบบ</p>
-                    </div>
-                    
-                    <!-- Register Form -->
-                    <div class="p-6">
-                        <div id="registerErrorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
-                        
-                        <form id="registerForm">
-                            <div class="mb-4">
-                                <label for="registerEmail" class="block text-gray-700 text-sm font-medium mb-2">อีเมล</label>
-                                <input type="email" id="registerEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="กรอกอีเมลของคุณ" required>
-                            </div>
-                            
-                            <div class="mb-4">
-                                <label for="registerPassword" class="block text-gray-700 text-sm font-medium mb-2">รหัสผ่าน</label>
-                                <input type="password" id="registerPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="กรอกรหัสผ่านของคุณ" required>
-                            </div>
-                            
-                            <div class="mb-6">
-                                <label for="confirmPassword" class="block text-gray-700 text-sm font-medium mb-2">ยืนยันรหัสผ่าน</label>
-                                <input type="password" id="confirmPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="กรอกรหัสผ่านอีกครั้ง" required>
-                            </div>
-                            
-                            <button type="submit" id="registerButton" class="w-full bg-green-800 text-white py-2 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50 transition duration-200">
-                                สมัครสมาชิก
-                            </button>
-                        </form>
-                        
-                        <div class="mt-6 text-center">
-                            <p class="text-sm text-gray-600">มีบัญชีอยู่แล้ว? <a href="#" id="loginLink" class="text-green-700 hover:text-green-900">เข้าสู่ระบบ</a></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- App Container (This is where your web app will be loaded) -->
-        <div id="appContainer" class="hidden w-full h-full">
-            <!-- Your web app will be loaded here using Shadow DOM -->
-        </div>
-    </div>
-    
+<body>
     <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white p-5 rounded-lg flex items-center">
-            <div class="loader"></div>
-            <span class="ml-2">กำลังดำเนินการ...</span>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Login Section -->
+    <div id="loginSection" class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1 class="text-2xl font-bold">เข้าสู่ระบบ</h1>
+                <p class="mt-2 text-sm opacity-80">กรุณาเข้าสู่ระบบเพื่อใช้งานแอปพลิเคชัน</p>
+            </div>
+            <div class="p-6">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">อีเมล</label>
+                        <input type="email" id="email" class="form-input" placeholder="กรอกอีเมลของคุณ" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่าน</label>
+                        <input type="password" id="password" class="form-input" placeholder="กรอกรหัสผ่านของคุณ" required>
+                    </div>
+                    <div id="errorMessage" class="text-red-500 text-sm mb-4 hidden"></div>
+                    <div class="form-group">
+                        <button type="submit" class="btn-login">เข้าสู่ระบบ</button>
+                    </div>
+                </form>
+                <div class="mt-4">
+                    <p class="text-center text-gray-600 text-sm mb-4">หรือ</p>
+                    <button id="registerBtn" class="btn-register">ลงทะเบียนใหม่</button>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- Registration Modal -->
+    <div id="registerModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg w-full max-w-md p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800">ลงทะเบียนผู้ใช้ใหม่</h2>
+                <button id="closeRegisterModal" class="text-gray-500 hover:text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="registerEmail" class="block text-sm font-medium text-gray-700 mb-1">อีเมล</label>
+                    <input type="email" id="registerEmail" class="form-input" placeholder="กรอกอีเมลของคุณ" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword" class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่าน</label>
+                    <input type="password" id="registerPassword" class="form-input" placeholder="กรอกรหัสผ่านของคุณ" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">ยืนยันรหัสผ่าน</label>
+                    <input type="password" id="confirmPassword" class="form-input" placeholder="กรอกรหัสผ่านอีกครั้ง" required>
+                </div>
+                <div id="registerErrorMessage" class="text-red-500 text-sm mb-4 hidden"></div>
+                <div class="form-group">
+                    <button type="submit" class="btn-login">ลงทะเบียน</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- App Container - Your web app will be loaded here -->
+    <div id="appContainer" class="app-container">
+        <!-- Your web app HTML will be placed here after successful login -->
+    </div>
+
     <script>
-        // Initialize Firebase
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCV0T11S2xJZzRxq1wKlIYLKC2ZMbppDR0",
             authDomain: "epidbma-7ace1.firebaseapp.com",
@@ -192,77 +196,73 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        
+
         // DOM Elements
-        const authSystem = document.getElementById('authSystem');
-        const loginContainer = document.getElementById('loginContainer');
-        const registerContainer = document.getElementById('registerContainer');
+        const loginSection = document.getElementById('loginSection');
         const appContainer = document.getElementById('appContainer');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const errorMessage = document.getElementById('errorMessage');
-        const successMessage = document.getElementById('successMessage');
-        const registerErrorMessage = document.getElementById('registerErrorMessage');
         const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');
-        const loginButton = document.getElementById('loginButton');
-        const registerButton = document.getElementById('registerButton');
-        const googleLogin = document.getElementById('googleLogin');
-        const registerLink = document.getElementById('registerLink');
-        const loginLink = document.getElementById('loginLink');
-        
+        const registerBtn = document.getElementById('registerBtn');
+        const registerModal = document.getElementById('registerModal');
+        const closeRegisterModal = document.getElementById('closeRegisterModal');
+        const errorMessage = document.getElementById('errorMessage');
+        const registerErrorMessage = document.getElementById('registerErrorMessage');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        // Show loading
+        function showLoading() {
+            loadingOverlay.style.display = 'flex';
+        }
+
+        // Hide loading
+        function hideLoading() {
+            loadingOverlay.style.display = 'none';
+        }
+
         // Check if user is already logged in
         auth.onAuthStateChanged(function(user) {
-            hideLoading();
             if (user) {
                 // User is signed in
                 showApp();
+            } else {
+                // No user is signed in
+                showLogin();
             }
         });
-        
-        // Prevent form submission refresh
+
+        // Login form submission
         loginForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            login();
-        });
-        
-        registerForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            register();
-        });
-        
-        // Login function
-        function login() {
+            
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
             showLoading();
-            hideError();
             
             auth.signInWithEmailAndPassword(email, password)
                 .then((userCredential) => {
                     // Signed in
-                    showSuccess("เข้าสู่ระบบสำเร็จ กำลังนำคุณไปยังหน้าหลัก...");
-                    setTimeout(() => {
-                        showApp();
-                    }, 1000);
+                    hideLoading();
+                    showApp();
                 })
                 .catch((error) => {
                     hideLoading();
-                    showError(getErrorMessage(error.code));
-                    shakeForm();
+                    errorMessage.textContent = getErrorMessage(error.code);
+                    errorMessage.classList.remove('hidden');
                 });
-        }
-        
-        // Register function
-        function register() {
+        });
+
+        // Register form submission
+        registerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
             const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             
-            hideRegisterError();
-            
             if (password !== confirmPassword) {
-                showRegisterError("รหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง");
+                registerErrorMessage.textContent = 'รหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง';
+                registerErrorMessage.classList.remove('hidden');
                 return;
             }
             
@@ -271,272 +271,449 @@
             auth.createUserWithEmailAndPassword(email, password)
                 .then((userCredential) => {
                     // Signed up
-                    showLoginForm();
-                    showSuccess("สมัครสมาชิกสำเร็จ กรุณาเข้าสู่ระบบ");
                     hideLoading();
+                    registerModal.classList.add('hidden');
+                    showApp();
                 })
                 .catch((error) => {
                     hideLoading();
-                    showRegisterError(getErrorMessage(error.code));
-                });
-        }
-        
-        // Google Sign In
-        googleLogin.addEventListener('click', function() {
-            showLoading();
-            hideError();
-            
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
-                .then((result) => {
-                    showSuccess("เข้าสู่ระบบด้วย Google สำเร็จ กำลังนำคุณไปยังหน้าหลัก...");
-                    setTimeout(() => {
-                        showApp();
-                    }, 1000);
-                })
-                .catch((error) => {
-                    hideLoading();
-                    showError(getErrorMessage(error.code));
+                    registerErrorMessage.textContent = getErrorMessage(error.code);
+                    registerErrorMessage.classList.remove('hidden');
                 });
         });
-        
-        // Switch between login and register forms
-        registerLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            showRegisterForm();
+
+        // Register button click
+        registerBtn.addEventListener('click', function() {
+            registerModal.classList.remove('hidden');
         });
-        
-        loginLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            showLoginForm();
+
+        // Close register modal
+        closeRegisterModal.addEventListener('click', function() {
+            registerModal.classList.add('hidden');
         });
-        
-        // Helper functions
-        function showLoading() {
-            loadingOverlay.classList.remove('hidden');
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(e) {
+            if (e.target === registerModal) {
+                registerModal.classList.add('hidden');
+            }
+        });
+
+        // Show login section
+        function showLogin() {
+            loginSection.style.display = 'flex';
+            appContainer.style.display = 'none';
         }
-        
-        function hideLoading() {
-            loadingOverlay.classList.add('hidden');
-        }
-        
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.classList.remove('hidden');
-        }
-        
-        function hideError() {
-            errorMessage.classList.add('hidden');
-        }
-        
-        function showRegisterError(message) {
-            registerErrorMessage.textContent = message;
-            registerErrorMessage.classList.remove('hidden');
-        }
-        
-        function hideRegisterError() {
-            registerErrorMessage.classList.add('hidden');
-        }
-        
-        function showSuccess(message) {
-            successMessage.textContent = message;
-            successMessage.classList.remove('hidden');
-        }
-        
-        function hideSuccess() {
-            successMessage.classList.add('hidden');
-        }
-        
-        function showLoginForm() {
-            authSystem.classList.remove('hidden');
-            loginContainer.classList.remove('hidden');
-            registerContainer.classList.add('hidden');
-            appContainer.classList.add('hidden');
-            hideError();
-            hideSuccess();
-        }
-        
-        function showRegisterForm() {
-            authSystem.classList.remove('hidden');
-            loginContainer.classList.add('hidden');
-            registerContainer.classList.remove('hidden');
-            appContainer.classList.add('hidden');
-            hideRegisterError();
-        }
-        
+
+        // Show app section
         function showApp() {
-            authSystem.classList.add('hidden');
-            loginContainer.classList.add('hidden');
-            registerContainer.classList.add('hidden');
-            appContainer.classList.remove('hidden');
+            loginSection.style.display = 'none';
+            appContainer.style.display = 'block';
             
-            // ตรงนี้คือส่วนที่จะโหลด web app ของคุณ
-            loadYourWebApp();
+            // Load your web app here
+            // This is where you would insert your web app code
+            loadWebApp();
         }
-        
-        function loadYourWebApp() {
-            // ล้าง appContainer ก่อน
-            appContainer.innerHTML = '';
-            
-            // สร้าง host element สำหรับ Shadow DOM
-            const appHost = document.createElement('div');
-            appHost.id = 'appHost';
-            appHost.style.width = '100%';
-            appHost.style.height = '100%';
-            appContainer.appendChild(appHost);
-            
-            // สร้าง Shadow DOM
-            const shadow = appHost.attachShadow({ mode: 'open' });
-            
-            // สร้างเนื้อหาใน Shadow DOM
-            shadow.innerHTML = `
-                <!-- นำเข้า Font สำหรับ Shadow DOM -->
-                <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-                
-                <!-- CSS สำหรับ web app ของคุณ (จะไม่มีผลกระทบกับ CSS ภายนอก) -->
-                <style>
-                    /* CSS Reset */
-                    * {
-                        margin: 0;
-                        padding: 0;
-                        box-sizing: border-box;
-                    }
-                    
-                    /* CSS พื้นฐาน */
-                    :host {
-                        display: block;
-                        width: 100%;
-                        height: 100%;
-                        font-family: 'Prompt', sans-serif;
-                    }
-                    
-                    .app-container {
-                        max-width: 1200px;
-                        margin: 0 auto;
-                        padding: 20px;
-                    }
-                    
-                    .app-header {
-                        background-color: #1e4620;
-                        color: white;
-                        padding: 15px 20px;
-                        border-radius: 8px;
-                        margin-bottom: 20px;
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                    }
-                    
-                    .app-content {
-                        background-color: white;
-                        border-radius: 8px;
-                        padding: 20px;
-                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                    }
-                    
-                    h1 {
-                        margin: 0;
-                        font-size: 24px;
-                        font-weight: bold;
-                    }
-                    
-                    h2 {
-                        margin-bottom: 16px;
-                        font-size: 20px;
-                        color: #1e4620;
-                    }
-                    
-                    p {
-                        margin-bottom: 16px;
-                        line-height: 1.5;
-                    }
-                    
-                    .logout-button {
-                        background-color: #dc2626;
-                        color: white;
-                        border: none;
-                        padding: 8px 16px;
-                        border-radius: 4px;
-                        cursor: pointer;
-                        font-size: 14px;
-                    }
-                    
-                    .logout-button:hover {
-                        background-color: #b91c1c;
-                    }
-                </style>
-                
 
+        // Load web app function
+        function loadWebApp() {
+            // This function will load your web app into the appContainer
+            // You will replace this with your actual web app code
+            
+            // For now, we'll just show a placeholder
+            appContainer.innerHTML = `
+<div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-white shadow-md">
+            <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-[#0F4C3A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    <h1 class="ml-2 text-xl font-bold text-[#0F4C3A]">ระบบจัดการคลังพัสดุ - กลุ่มงานระบาดวิทยา</h1>
+                </div>
+                <div class="text-sm text-gray-600" id="current-date-time"></div>
+            </div>
+        </header>
 
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>สวัสดีจ้า</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap');
-        
-        body {
-            font-family: 'Prompt', sans-serif;
-            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
-        
-        .floating {
-            animation: float 6s ease-in-out infinite;
-        }
-        
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-            100% { transform: translateY(0px); }
-        }
-        
-        .circle {
-            position: absolute;
-            border-radius: 50%;
-            opacity: 0.6;
-        }
-    </style>
-</head>
-<body class="flex items-center justify-center">
-    <!-- Decorative circles -->
-    <div class="circle bg-pink-200" style="width: 300px; height: 300px; top: -100px; left: -100px;"></div>
-    <div class="circle bg-yellow-200" style="width: 200px; height: 200px; bottom: -50px; right: 100px;"></div>
-    <div class="circle bg-purple-200" style="width: 150px; height: 150px; top: 100px; right: -50px;"></div>
-    
-    <div class="text-center z-10 p-8 bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg rounded-3xl shadow-xl border border-white border-opacity-20">
-        <h1 class="text-6xl md:text-8xl font-bold text-white floating mb-4 text-shadow">สวัสดีจ้า</h1>
-        <p class="text-xl md:text-2xl text-white font-light">ยินดีต้อนรับสู่เว็บไซต์ของเรา</p>
-        
-        <div class="mt-8 flex justify-center space-x-4">
-            <button class="px-6 py-3 bg-white bg-opacity-30 hover:bg-opacity-40 transition-all duration-300 rounded-full text-white font-medium border border-white border-opacity-30">
-                เริ่มต้นใช้งาน
-            </button>
-            <button class="px-6 py-3 bg-white hover:bg-opacity-90 transition-all duration-300 rounded-full text-pink-500 font-medium">
-                เกี่ยวกับเรา
-            </button>
+        <!-- Main Content -->
+        <div class="flex flex-1">
+            <!-- Sidebar -->
+            <aside class="w-64 bg-white shadow-md p-4">
+                <nav>
+                    <div class="nav-item active" data-page="stock">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                        สต๊อกพัสดุ
+                    </div>
+                    <div class="nav-item" data-page="withdraw">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        เบิกพัสดุ
+                    </div>
+                    <div class="nav-item" data-page="receive">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        รับพัสดุ
+                    </div>
+                    <div class="nav-item" data-page="history">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        ประวัติการเบิก-รับ
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Content Area -->
+            <main class="flex-1 p-6 overflow-auto">
+                <!-- Stock Page -->
+                <div id="stock-page" class="page">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-[#0F4C3A]">สต๊อกพัสดุ</h2>
+                        <div>
+                            <button id="add-item-btn" class="btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                เพิ่มรายการพัสดุ
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                        <div class="mb-4">
+                            <input type="text" id="stock-search" placeholder="ค้นหารายการพัสดุ..." class="w-full p-2 border border-gray-300 rounded-md">
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table id="stock-table" class="min-w-full">
+                                <thead>
+                                    <tr>
+                                        <th>รหัสบาร์โค้ด</th>
+                                        <th>รายการพัสดุ</th>
+                                        <th>จำนวนคงเหลือ</th>
+                                        <th>หน่วยนับ</th>
+                                        <th>วันหมดอายุ</th>
+                                        <th>สถานะ</th>
+                                        <th>จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stock-table-body">
+                                    <!-- Stock items will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Withdraw Page -->
+                <div id="withdraw-page" class="page hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-[#0F4C3A]">เบิกพัสดุ</h2>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-gray-700 mb-2">ชื่อผู้เบิก</label>
+                                <input type="text" id="withdraw-name" class="w-full p-2 border border-gray-300 rounded-md">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2">ตำแหน่ง</label>
+                                <input type="text" id="withdraw-position" class="w-full p-2 border border-gray-300 rounded-md">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-gray-700 mb-2">วัตถุประสงค์การใช้</label>
+                            <textarea id="withdraw-purpose" class="w-full p-2 border border-gray-300 rounded-md" rows="2"></textarea>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-gray-700 mb-2">แสกนบาร์โค้ด</label>
+                            <input type="text" id="withdraw-barcode" class="barcode-input" placeholder="แสกนบาร์โค้ดที่นี่..." autofocus>
+                        </div>
+                        
+                        <div class="overflow-x-auto mb-6">
+                            <table class="min-w-full">
+                                <thead>
+                                    <tr>
+                                        <th>รหัสบาร์โค้ด</th>
+                                        <th>รายการพัสดุ</th>
+                                        <th>จำนวนคงเหลือ</th>
+                                        <th>จำนวนที่เบิก</th>
+                                        <th>หน่วยนับ</th>
+                                        <th>ลบ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="withdraw-items">
+                                    <!-- Withdraw items will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="flex justify-end">
+                            <button id="withdraw-submit" class="btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                บันทึกการเบิก
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Receive Page -->
+                <div id="receive-page" class="page hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-[#0F4C3A]">รับพัสดุ</h2>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-gray-700 mb-2">แหล่งที่มา</label>
+                                <input type="text" id="receive-source" class="w-full p-2 border border-gray-300 rounded-md">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2">ผู้รับ</label>
+                                <input type="text" id="receive-receiver" class="w-full p-2 border border-gray-300 rounded-md">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-gray-700 mb-2">แสกนบาร์โค้ด (สำหรับพัสดุที่มีในระบบ)</label>
+                            <input type="text" id="receive-barcode" class="barcode-input" placeholder="แสกนบาร์โค้ดที่นี่..." autofocus>
+                        </div>
+                        
+                        <div class="overflow-x-auto mb-6">
+                            <table class="min-w-full">
+                                <thead>
+                                    <tr>
+                                        <th>รหัสบาร์โค้ด</th>
+                                        <th>รายการพัสดุ</th>
+                                        <th>จำนวนที่รับ</th>
+                                        <th>หน่วยนับ</th>
+                                        <th>วันหมดอายุ</th>
+                                        <th>ลบ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="receive-items">
+                                    <!-- Receive items will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <button id="add-new-item-btn" class="btn-secondary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                เพิ่มรายการใหม่
+                            </button>
+                            <button id="receive-submit" class="btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                บันทึกการรับ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History Page -->
+                <div id="history-page" class="page hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-[#0F4C3A]">ประวัติการเบิก-รับ</h2>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                        <div class="flex flex-wrap gap-4 mb-6">
+                            <div>
+                                <label class="block text-gray-700 mb-2">ประเภท</label>
+                                <select id="history-type" class="p-2 border border-gray-300 rounded-md">
+                                    <option value="all">ทั้งหมด</option>
+                                    <option value="withdraw">การเบิก</option>
+                                    <option value="receive">การรับ</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2">จากวันที่</label>
+                                <input type="date" id="history-start-date" class="p-2 border border-gray-300 rounded-md">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2">ถึงวันที่</label>
+                                <input type="date" id="history-end-date" class="p-2 border border-gray-300 rounded-md">
+                            </div>
+                            <div class="flex items-end">
+                                <button id="history-search" class="btn-primary">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    ค้นหา
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead>
+                                    <tr>
+                                        <th>วันที่</th>
+                                        <th>เวลา</th>
+                                        <th>ประเภท</th>
+                                        <th>ผู้ดำเนินการ</th>
+                                        <th>รายละเอียด</th>
+                                        <th>จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-items">
+                                    <!-- History items will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
-    
-    <!-- Floating elements -->
-    <div class="absolute text-6xl" style="top: 20%; left: 20%; animation: float 5s ease-in-out infinite 0.5s;">✨</div>
-    <div class="absolute text-6xl" style="bottom: 25%; right: 15%; animation: float 7s ease-in-out infinite 1s;">🌸</div>
-    <div class="absolute text-5xl" style="top: 15%; right: 25%; animation: float 6s ease-in-out infinite 1.5s;">✨</div>
-    <div class="absolute text-5xl" style="bottom: 20%; left: 10%; animation: float 8s ease-in-out infinite 2s;">🌺</div>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9544e065840af936',t:'MTc1MDY5MTA1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
-</html>
 
+    <!-- Add/Edit Item Modal -->
+    <div id="item-modal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold text-[#0F4C3A] mb-4" id="modal-title">เพิ่มรายการพัสดุ</h3>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">รหัสบาร์โค้ด</label>
+                <input type="text" id="item-barcode" class="w-full p-2 border border-gray-300 rounded-md">
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">รายการพัสดุ</label>
+                <input type="text" id="item-name" class="w-full p-2 border border-gray-300 rounded-md">
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">จำนวน</label>
+                <input type="number" id="item-quantity" class="w-full p-2 border border-gray-300 rounded-md" min="0">
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">หน่วยนับ</label>
+                <input type="text" id="item-unit" class="w-full p-2 border border-gray-300 rounded-md">
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">วันหมดอายุ (ถ้ามี)</label>
+                <input type="date" id="item-expiry" class="w-full p-2 border border-gray-300 rounded-md">
+            </div>
+            
+            <div class="flex justify-end gap-2">
+                <button id="modal-cancel" class="btn-secondary">ยกเลิก</button>
+                <button id="modal-save" class="btn-primary">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div id="receipt-modal" class="modal">
+        <div class="modal-content">
+            <div id="receipt-content" class="receipt">
+                <div class="receipt-header">
+                    <h2 class="text-xl font-bold">กลุ่มงานระบาดวิทยา</h2>
+                    <p id="receipt-title" class="text-lg">ใบเบิกพัสดุ</p>
+                    <p id="receipt-date"></p>
+                </div>
+                
+                <div class="mb-4">
+                    <p id="receipt-person"></p>
+                    <p id="receipt-details"></p>
+                </div>
+                
+                <table class="receipt-table">
+                    <thead>
+                        <tr>
+                            <th>ลำดับ</th>
+                            <th>รหัสบาร์โค้ด</th>
+                            <th>รายการพัสดุ</th>
+                            <th>จำนวน</th>
+                            <th>หน่วยนับ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="receipt-items">
+                        <!-- Receipt items will be populated here -->
+                    </tbody>
+                </table>
+                
+                <div class="receipt-footer">
+                    <div class="signature">
+                        <div class="signature-line"></div>
+                        <p>ผู้เบิก/ผู้รับ</p>
+                    </div>
+                    <div class="signature">
+                        <div class="signature-line"></div>
+                        <p>ผู้จ่าย/ผู้บันทึก</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-2 mt-4">
+                <button id="receipt-print" class="btn-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    พิมพ์
+                </button>
+                <button id="receipt-pdf" class="btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    บันทึก PDF
+                </button>
+                <button id="receipt-close" class="btn-secondary">ปิด</button>
+            </div>
+        </div>
+    </div>
             `;
             
- 
-    </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9544d39e742a8321',t:'MTc1MDY5MDUyOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
-</html>
+            // Add logout functionality
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                auth.signOut().then(() => {
+                    showLogin();
+                }).catch((error) => {
+                    console.error('Error signing out:', error);
+                });
+            });
+        }
 
-   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-   
+        // Error message helper
+        function getErrorMessage(errorCode) {
+            switch(errorCode) {
+                case 'auth/invalid-email':
+                    return 'รูปแบบอีเมลไม่ถูกต้อง';
+                case 'auth/user-disabled':
+                    return 'บัญชีผู้ใช้นี้ถูกระงับการใช้งาน';
+                case 'auth/user-not-found':
+                    return 'ไม่พบบัญชีผู้ใช้นี้';
+                case 'auth/wrong-password':
+                    return 'รหัสผ่านไม่ถูกต้อง';
+                case 'auth/email-already-in-use':
+                    return 'อีเมลนี้ถูกใช้งานแล้ว';
+                case 'auth/weak-password':
+                    return 'รหัสผ่านไม่ปลอดภัย กรุณาใช้รหัสผ่านที่มีความยาวอย่างน้อย 6 ตัวอักษร';
+                default:
+                    return 'เกิดข้อผิดพลาด: ' + errorCode;
+            }
+        }
+
+        // Prevent form resubmission on page refresh
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9544eb463132f92c',t:'MTc1MDY5MTQ5OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
