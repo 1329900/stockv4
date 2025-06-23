@@ -15,10 +15,11 @@
         body {
             font-family: 'Prompt', sans-serif;
             background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
         }
         
-        /* ใช้ namespace สำหรับ CSS ของหน้า login */
-        #authSystem .loader {
+        .loader {
             border: 4px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             border-top: 4px solid #ffffff;
@@ -35,7 +36,7 @@
             100% { transform: rotate(360deg); }
         }
         
-        #authSystem .fade-in {
+        .fade-in {
             animation: fadeIn 0.5s ease-in-out;
         }
         
@@ -44,7 +45,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        #authSystem .shake {
+        .shake {
             animation: shake 0.5s;
         }
         
@@ -56,112 +57,115 @@
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-    <div id="authSystem" class="w-full h-full">
-        <!-- Login Container -->
-        <div id="loginContainer" class="w-full max-w-md fade-in mx-auto">
-            <div class="bg-white rounded-lg shadow-xl overflow-hidden">
-                <!-- Header -->
-                <div class="bg-green-800 p-6 text-center">
-                    <h1 class="text-2xl font-bold text-white">ยินดีต้อนรับ</h1>
-                    <p class="text-green-100 mt-1">กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ</p>
-                </div>
-                
-                <!-- Login Form -->
-                <div class="p-6">
-                    <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
-                    <div id="successMessage" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4"></div>
-                    
-                    <form id="loginForm">
-                        <div class="mb-4">
-                            <label for="email" class="block text-gray-700 text-sm font-medium mb-2">อีเมล</label>
-                            <input type="email" id="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="กรอกอีเมลของคุณ" required>
-                        </div>
-                        
-                        <div class="mb-6">
-                            <label for="password" class="block text-gray-700 text-sm font-medium mb-2">รหัสผ่าน</label>
-                            <input type="password" id="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="กรอกรหัสผ่านของคุณ" required>
-                        </div>
-                        
-                        <div class="flex items-center justify-between mb-6">
-                            <div class="flex items-center">
-                                <input type="checkbox" id="remember" class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
-                                <label for="remember" class="ml-2 block text-sm text-gray-700">จดจำฉัน</label>
-                            </div>
-                            
-                            <div>
-                                <a href="#" class="text-sm text-green-700 hover:text-green-900">ลืมรหัสผ่าน?</a>
-                            </div>
-                        </div>
-                        
-                        <button type="submit" id="loginButton" class="w-full bg-green-800 text-white py-2 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50 transition duration-200">
-                            เข้าสู่ระบบ
-                        </button>
-                    </form>
-                    
-                    <div class="mt-6 text-center">
-                        <p class="text-sm text-gray-600">หรือเข้าสู่ระบบด้วย</p>
-                        <div class="flex justify-center space-x-4 mt-3">
-                            <button id="googleLogin" class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-200">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/>
-                                </svg>
-                                Google
-                            </button>
-                        </div>
+    <div id="mainContainer" class="w-full max-w-6xl mx-auto">
+        <!-- Auth System Container -->
+        <div id="authSystem" class="w-full">
+            <!-- Login Container -->
+            <div id="loginContainer" class="w-full max-w-md fade-in mx-auto">
+                <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+                    <!-- Header -->
+                    <div class="bg-green-800 p-6 text-center">
+                        <h1 class="text-2xl font-bold text-white">ยินดีต้อนรับ</h1>
+                        <p class="text-green-100 mt-1">กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ</p>
                     </div>
                     
-                    <div class="mt-6 text-center">
-                        <p class="text-sm text-gray-600">ยังไม่มีบัญชี? <a href="#" id="registerLink" class="text-green-700 hover:text-green-900">สมัครสมาชิก</a></p>
+                    <!-- Login Form -->
+                    <div class="p-6">
+                        <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
+                        <div id="successMessage" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4"></div>
+                        
+                        <form id="loginForm">
+                            <div class="mb-4">
+                                <label for="email" class="block text-gray-700 text-sm font-medium mb-2">อีเมล</label>
+                                <input type="email" id="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="กรอกอีเมลของคุณ" required>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <label for="password" class="block text-gray-700 text-sm font-medium mb-2">รหัสผ่าน</label>
+                                <input type="password" id="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="กรอกรหัสผ่านของคุณ" required>
+                            </div>
+                            
+                            <div class="flex items-center justify-between mb-6">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="remember" class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                                    <label for="remember" class="ml-2 block text-sm text-gray-700">จดจำฉัน</label>
+                                </div>
+                                
+                                <div>
+                                    <a href="#" class="text-sm text-green-700 hover:text-green-900">ลืมรหัสผ่าน?</a>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" id="loginButton" class="w-full bg-green-800 text-white py-2 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50 transition duration-200">
+                                เข้าสู่ระบบ
+                            </button>
+                        </form>
+                        
+                        <div class="mt-6 text-center">
+                            <p class="text-sm text-gray-600">หรือเข้าสู่ระบบด้วย</p>
+                            <div class="flex justify-center space-x-4 mt-3">
+                                <button id="googleLogin" class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-200">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/>
+                                    </svg>
+                                    Google
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 text-center">
+                            <p class="text-sm text-gray-600">ยังไม่มีบัญชี? <a href="#" id="registerLink" class="text-green-700 hover:text-green-900">สมัครสมาชิก</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Register Container -->
+            <div id="registerContainer" class="w-full max-w-md hidden mx-auto">
+                <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+                    <!-- Header -->
+                    <div class="bg-green-800 p-6 text-center">
+                        <h1 class="text-2xl font-bold text-white">สมัครสมาชิก</h1>
+                        <p class="text-green-100 mt-1">สร้างบัญชีใหม่เพื่อเข้าใช้งานระบบ</p>
+                    </div>
+                    
+                    <!-- Register Form -->
+                    <div class="p-6">
+                        <div id="registerErrorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
+                        
+                        <form id="registerForm">
+                            <div class="mb-4">
+                                <label for="registerEmail" class="block text-gray-700 text-sm font-medium mb-2">อีเมล</label>
+                                <input type="email" id="registerEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="กรอกอีเมลของคุณ" required>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="registerPassword" class="block text-gray-700 text-sm font-medium mb-2">รหัสผ่าน</label>
+                                <input type="password" id="registerPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="กรอกรหัสผ่านของคุณ" required>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <label for="confirmPassword" class="block text-gray-700 text-sm font-medium mb-2">ยืนยันรหัสผ่าน</label>
+                                <input type="password" id="confirmPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="กรอกรหัสผ่านอีกครั้ง" required>
+                            </div>
+                            
+                            <button type="submit" id="registerButton" class="w-full bg-green-800 text-white py-2 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50 transition duration-200">
+                                สมัครสมาชิก
+                            </button>
+                        </form>
+                        
+                        <div class="mt-6 text-center">
+                            <p class="text-sm text-gray-600">มีบัญชีอยู่แล้ว? <a href="#" id="loginLink" class="text-green-700 hover:text-green-900">เข้าสู่ระบบ</a></p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Register Container -->
-        <div id="registerContainer" class="w-full max-w-md hidden mx-auto">
-            <div class="bg-white rounded-lg shadow-xl overflow-hidden">
-                <!-- Header -->
-                <div class="bg-green-800 p-6 text-center">
-                    <h1 class="text-2xl font-bold text-white">สมัครสมาชิก</h1>
-                    <p class="text-green-100 mt-1">สร้างบัญชีใหม่เพื่อเข้าใช้งานระบบ</p>
-                </div>
-                
-                <!-- Register Form -->
-                <div class="p-6">
-                    <div id="registerErrorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
-                    
-                    <form id="registerForm">
-                        <div class="mb-4">
-                            <label for="registerEmail" class="block text-gray-700 text-sm font-medium mb-2">อีเมล</label>
-                            <input type="email" id="registerEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="กรอกอีเมลของคุณ" required>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="registerPassword" class="block text-gray-700 text-sm font-medium mb-2">รหัสผ่าน</label>
-                            <input type="password" id="registerPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="กรอกรหัสผ่านของคุณ" required>
-                        </div>
-                        
-                        <div class="mb-6">
-                            <label for="confirmPassword" class="block text-gray-700 text-sm font-medium mb-2">ยืนยันรหัสผ่าน</label>
-                            <input type="password" id="confirmPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="กรอกรหัสผ่านอีกครั้ง" required>
-                        </div>
-                        
-                        <button type="submit" id="registerButton" class="w-full bg-green-800 text-white py-2 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50 transition duration-200">
-                            สมัครสมาชิก
-                        </button>
-                    </form>
-                    
-                    <div class="mt-6 text-center">
-                        <p class="text-sm text-gray-600">มีบัญชีอยู่แล้ว? <a href="#" id="loginLink" class="text-green-700 hover:text-green-900">เข้าสู่ระบบ</a></p>
-                    </div>
-                </div>
-            </div>
+        <!-- App Container (This is where your web app will be loaded) -->
+        <div id="appContainer" class="hidden w-full h-full">
+            <!-- Your web app will be loaded here using Shadow DOM -->
         </div>
-    </div>
-    
-    <!-- App Container (This is where your web app will be loaded) -->
-    <div id="appContainer" class="hidden w-full h-full">
-        <!-- Your web app will be loaded here -->
     </div>
     
     <!-- Loading Overlay -->
@@ -371,24 +375,48 @@
         }
         
         function loadYourWebApp() {
-            // สร้าง container พร้อม namespace เฉพาะสำหรับ web app ของคุณ
-            appContainer.innerHTML = `
-                <!-- CSS สำหรับ web app ของคุณ -->
+            // ล้าง appContainer ก่อน
+            appContainer.innerHTML = '';
+            
+            // สร้าง host element สำหรับ Shadow DOM
+            const appHost = document.createElement('div');
+            appHost.id = 'appHost';
+            appHost.style.width = '100%';
+            appHost.style.height = '100%';
+            appContainer.appendChild(appHost);
+            
+            // สร้าง Shadow DOM
+            const shadow = appHost.attachShadow({ mode: 'open' });
+            
+            // สร้างเนื้อหาใน Shadow DOM
+            shadow.innerHTML = `
+                <!-- นำเข้า Font สำหรับ Shadow DOM -->
+                <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+                
+                <!-- CSS สำหรับ web app ของคุณ (จะไม่มีผลกระทบกับ CSS ภายนอก) -->
                 <style>
-                    /* CSS Reset เฉพาะสำหรับ web app */
-                    #yourWebApp * {
+                    /* CSS Reset */
+                    * {
+                        margin: 0;
+                        padding: 0;
                         box-sizing: border-box;
                     }
                     
-                    /* CSS พื้นฐานสำหรับ web app */
-                    #yourWebApp {
+                    /* CSS พื้นฐาน */
+                    :host {
+                        display: block;
+                        width: 100%;
+                        height: 100%;
                         font-family: 'Prompt', sans-serif;
+                    }
+                    
+                    .app-container {
                         max-width: 1200px;
                         margin: 0 auto;
                         padding: 20px;
                     }
                     
-                    #yourWebApp .app-header {
+                    .app-header {
                         background-color: #1e4620;
                         color: white;
                         padding: 15px 20px;
@@ -399,14 +427,31 @@
                         align-items: center;
                     }
                     
-                    #yourWebApp .app-content {
+                    .app-content {
                         background-color: white;
                         border-radius: 8px;
                         padding: 20px;
                         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                     }
                     
-                    #yourWebApp .logout-button {
+                    h1 {
+                        margin: 0;
+                        font-size: 24px;
+                        font-weight: bold;
+                    }
+                    
+                    h2 {
+                        margin-bottom: 16px;
+                        font-size: 20px;
+                        color: #1e4620;
+                    }
+                    
+                    p {
+                        margin-bottom: 16px;
+                        line-height: 1.5;
+                    }
+                    
+                    .logout-button {
                         background-color: #dc2626;
                         color: white;
                         border: none;
@@ -416,7 +461,7 @@
                         font-size: 14px;
                     }
                     
-                    #yourWebApp .logout-button:hover {
+                    .logout-button:hover {
                         background-color: #b91c1c;
                     }
                 </style>
@@ -1979,7 +2024,7 @@
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'95448efa1009eba2',t:'MTc1MDY4NzcxNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
 
-                <div id="yourWebApp">
+                <div class="app-container">
                     <div class="app-header">
                         <h1>ระบบของฉัน</h1>
                         <button id="logoutButton" class="logout-button">ออกจากระบบ</button>
@@ -1994,7 +2039,7 @@
             `;
             
             // เพิ่มฟังก์ชัน logout
-            document.getElementById('logoutButton').addEventListener('click', function() {
+            shadow.getElementById('logoutButton').addEventListener('click', function() {
                 auth.signOut().then(() => {
                     showLoginForm();
                 }).catch((error) => {
@@ -2003,6 +2048,8 @@
             });
             
             // เพิ่มโค้ด JavaScript ที่จำเป็นสำหรับ web app ของคุณที่นี่
+            // หมายเหตุ: คุณสามารถเพิ่ม script tag ใน shadow.innerHTML ด้านบนได้
+            // หรือเพิ่มโค้ด JavaScript ที่นี่โดยใช้ shadow.getElementById() เพื่อเข้าถึงองค์ประกอบใน Shadow DOM
         }
         
         function shakeForm() {
@@ -2045,5 +2092,8 @@
             e.returnValue = '';
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9544c88983c5ce56',t:'MTc1MDY5MDA3NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9544d39e742a8321',t:'MTc1MDY5MDUyOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
+   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+   
