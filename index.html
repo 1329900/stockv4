@@ -5,183 +5,508 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เข้าสู่ระบบ</title>
+    <title>ระบบจัดการคลังวัสดุ - กลุ่มงานระบาดวิทยา</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/locale/th.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary-color: #0F4C3A;
+            --secondary-color: #1A7A5A;
+            --light-color: #F5F5F5;
+            --gray-color: #6B7280;
+            --dark-gray: #374151;
+        }
+        
+        * {
+            font-family: 'Sarabun', sans-serif;
+        }
+        
         body {
-            font-family: 'Prompt', sans-serif;
-            background-color: #f3f4f6;
+            background-color: var(--light-color);
         }
-        .login-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .login-card {
-            background-color: white;
-            border-radius: 1rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 450px;
-            overflow: hidden;
-        }
-        .login-header {
-            background-color: #0f4c2e;
+        
+        .btn-primary {
+            background-color: var(--primary-color);
             color: white;
-            padding: 1.5rem;
-            text-align: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: all 0.2s;
         }
-        .form-group {
-            margin-bottom: 1.5rem;
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
         }
+        
+        .btn-secondary {
+            background-color: var(--gray-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--dark-gray);
+        }
+        
+        .btn-danger {
+            background-color: #DC2626;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-danger:hover {
+            background-color: #B91C1C;
+        }
+        
+        .nav-link {
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--secondary-color);
+        }
+        
         .form-input {
             width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            transition: all 0.3s;
+            padding: 0.5rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
         }
+        
         .form-input:focus {
-            outline: none;
-            border-color: #0f4c2e;
-            box-shadow: 0 0 0 3px rgba(15, 76, 46, 0.2);
+            outline: 2px solid var(--secondary-color);
+            border-color: var(--secondary-color);
         }
-        .btn-login {
-            background-color: #0f4c2e;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
+        
+        table {
             width: 100%;
-            font-weight: 600;
-            transition: all 0.3s;
+            border-collapse: collapse;
         }
-        .btn-login:hover {
-            background-color: #0a3622;
+        
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #E5E7EB;
         }
-        .btn-register {
-            background-color: #4b5563;
+        
+        th {
+            background-color: var(--primary-color);
             color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            width: 100%;
-            font-weight: 600;
-            transition: all 0.3s;
         }
-        .btn-register:hover {
-            background-color: #374151;
+        
+        tr:nth-child(even) {
+            background-color: #F9FAFB;
         }
-        .app-container {
+        
+        .expire-warning {
+            color: #DC2626;
+            font-weight: 500;
+        }
+        
+        .expire-soon {
+            color: #F59E0B;
+            font-weight: 500;
+        }
+        
+        .modal {
             display: none;
-        }
-        .loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(255, 255, 255, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background-color: rgba(0, 0, 0, 0.5);
             z-index: 1000;
+            overflow: auto;
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: black;
+        }
+        
+        .barcode-input {
+            font-size: 1.25rem;
+            padding: 0.75rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 0.375rem;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        
+        .barcode-input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(26, 122, 90, 0.2);
+        }
+        
+        .print-only {
             display: none;
         }
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #0f4c2e;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        @font-face {
-            font-family: 'Prompt';
-            src: url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+        
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            .print-only {
+                display: block;
+            }
+            
+            body {
+                background-color: white;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
-    </div>
-
-    <!-- Login Section -->
-    <div id="loginSection" class="login-container">
-        <div class="login-card">
-            <div class="login-header">
-                <h1 class="text-2xl font-bold">เข้าสู่ระบบ</h1>
-                <p class="mt-2 text-sm opacity-80">กรุณาเข้าสู่ระบบเพื่อใช้งานแอปพลิเคชัน</p>
+    <!-- Login Page -->
+    <div id="loginPage" class="min-h-screen flex items-center justify-center bg-gray-100">
+        <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-bold text-[#0F4C3A]">ระบบจัดการคลังวัสดุ</h1>
+                <p class="text-gray-600">กลุ่มงานระบาดวิทยา</p>
             </div>
-            <div class="p-6">
-                <form id="loginForm">
-                    <div class="form-group">
-                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">อีเมล</label>
-                        <input type="email" id="email" class="form-input" placeholder="กรอกอีเมลของคุณ" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่าน</label>
-                        <input type="password" id="password" class="form-input" placeholder="กรอกรหัสผ่านของคุณ" required>
-                    </div>
-                    <div id="errorMessage" class="text-red-500 text-sm mb-4 hidden"></div>
-                    <div class="form-group">
-                        <button type="submit" class="btn-login">เข้าสู่ระบบ</button>
-                    </div>
-                </form>
-                <div class="mt-4">
-                    <p class="text-center text-gray-600 text-sm mb-4">หรือ</p>
-                    <button id="registerBtn" class="btn-register">ลงทะเบียนใหม่</button>
+            
+            <div id="loginError" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 hidden"></div>
+            
+            <form id="loginForm">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="email">อีเมล</label>
+                    <input class="form-input" id="email" type="email" placeholder="อีเมล" required>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Registration Modal -->
-    <div id="registerModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg w-full max-w-md p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-gray-800">ลงทะเบียนผู้ใช้ใหม่</h2>
-                <button id="closeRegisterModal" class="text-gray-500 hover:text-gray-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            <form id="registerForm">
-                <div class="form-group">
-                    <label for="registerEmail" class="block text-sm font-medium text-gray-700 mb-1">อีเมล</label>
-                    <input type="email" id="registerEmail" class="form-input" placeholder="กรอกอีเมลของคุณ" required>
+                
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="password">รหัสผ่าน</label>
+                    <input class="form-input" id="password" type="password" placeholder="รหัสผ่าน" required>
                 </div>
-                <div class="form-group">
-                    <label for="registerPassword" class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่าน</label>
-                    <input type="password" id="registerPassword" class="form-input" placeholder="กรอกรหัสผ่านของคุณ" required>
-                </div>
-                <div class="form-group">
-                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">ยืนยันรหัสผ่าน</label>
-                    <input type="password" id="confirmPassword" class="form-input" placeholder="กรอกรหัสผ่านอีกครั้ง" required>
-                </div>
-                <div id="registerErrorMessage" class="text-red-500 text-sm mb-4 hidden"></div>
-                <div class="form-group">
-                    <button type="submit" class="btn-login">ลงทะเบียน</button>
+                
+                <div class="flex items-center justify-between">
+                    <button class="btn-primary w-full" type="submit">เข้าสู่ระบบ</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- App Container - Your web app will be loaded here -->
-    <div id="appContainer" class="app-container">
-        <!-- Your web app HTML will be placed here after successful login -->
+    <!-- Main Application -->
+    <div id="app" class="hidden">
+        <!-- Navigation -->
+        <nav class="bg-[#0F4C3A] text-white shadow-md">
+            <div class="container mx-auto px-4">
+                <div class="flex flex-col md:flex-row justify-between items-center py-3">
+                    <div class="flex items-center mb-3 md:mb-0">
+                        <h1 class="text-xl font-bold">ระบบจัดการคลังวัสดุ - กลุ่มงานระบาดวิทยา</h1>
+                    </div>
+                    <div class="flex flex-wrap justify-center">
+                        <a href="#" class="nav-link active" data-page="stock">สต๊อกวัสดุ</a>
+                        <a href="#" class="nav-link" data-page="withdraw">เบิกวัสดุ</a>
+                        <a href="#" class="nav-link" data-page="receive">รับวัสดุ</a>
+                        <a href="#" class="nav-link" data-page="history">ประวัติ</a>
+                        <button id="logoutBtn" class="nav-link">ออกจากระบบ</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Content Container -->
+        <div class="container mx-auto px-4 py-6">
+            <!-- Stock Page -->
+            <div id="stockPage" class="page">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-[#0F4C3A]">รายการวัสดุในคลัง</h2>
+                        <div class="flex space-x-2">
+                            <input type="text" id="stockSearch" placeholder="ค้นหาวัสดุ..." class="form-input mb-0">
+                            <button id="addItemBtn" class="btn-primary">เพิ่มวัสดุใหม่</button>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table id="stockTable" class="min-w-full">
+                            <thead>
+                                <tr>
+                                    <th>รหัสบาร์โค้ด</th>
+                                    <th>รายการวัสดุ</th>
+                                    <th>จำนวนคงเหลือ</th>
+                                    <th>หน่วยนับ</th>
+                                    <th>วันหมดอายุ</th>
+                                    <th>สถานะ</th>
+                                    <th>จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Stock items will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Withdraw Page -->
+            <div id="withdrawPage" class="page hidden">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-bold text-[#0F4C3A] mb-4">เบิกวัสดุ</h2>
+                    
+                    <form id="withdrawForm" class="mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="withdrawName">ชื่อผู้เบิก</label>
+                                <input class="form-input mb-0" id="withdrawName" type="text" required>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="withdrawPosition">ตำแหน่ง</label>
+                                <input class="form-input mb-0" id="withdrawPosition" type="text" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="withdrawPurpose">วัตถุประสงค์การใช้</label>
+                            <textarea class="form-input mb-0" id="withdrawPurpose" rows="2" required></textarea>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="withdrawBarcode">แสกนบาร์โค้ด</label>
+                            <input class="barcode-input" id="withdrawBarcode" type="text" placeholder="แสกนบาร์โค้ดที่นี่...">
+                        </div>
+                    </form>
+                    
+                    <div class="overflow-x-auto mb-6">
+                        <table id="withdrawItemsTable" class="min-w-full">
+                            <thead>
+                                <tr>
+                                    <th>รหัสบาร์โค้ด</th>
+                                    <th>รายการวัสดุ</th>
+                                    <th>จำนวนคงเหลือ</th>
+                                    <th>หน่วยนับ</th>
+                                    <th>จำนวนที่เบิก</th>
+                                    <th>จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Withdraw items will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button id="withdrawSubmitBtn" class="btn-primary">บันทึกการเบิก</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Receive Page -->
+            <div id="receivePage" class="page hidden">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-bold text-[#0F4C3A] mb-4">รับวัสดุ</h2>
+                    
+                    <form id="receiveForm" class="mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="receiveSource">แหล่งที่มา</label>
+                                <input class="form-input mb-0" id="receiveSource" type="text" required>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="receiveName">ผู้รับ</label>
+                                <input class="form-input mb-0" id="receiveName" type="text" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="receiveBarcode">แสกนบาร์โค้ด</label>
+                            <input class="barcode-input" id="receiveBarcode" type="text" placeholder="แสกนบาร์โค้ดที่นี่...">
+                        </div>
+                    </form>
+                    
+                    <div class="overflow-x-auto mb-6">
+                        <table id="receiveItemsTable" class="min-w-full">
+                            <thead>
+                                <tr>
+                                    <th>รหัสบาร์โค้ด</th>
+                                    <th>รายการวัสดุ</th>
+                                    <th>จำนวนคงเหลือ</th>
+                                    <th>หน่วยนับ</th>
+                                    <th>จำนวนที่รับ</th>
+                                    <th>จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Receive items will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button id="addNewItemBtn" class="btn-secondary mr-2">เพิ่มรายการใหม่</button>
+                        <button id="receiveSubmitBtn" class="btn-primary">บันทึกการรับ</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Page -->
+            <div id="historyPage" class="page hidden">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-[#0F4C3A]">ประวัติการเบิก-รับวัสดุ</h2>
+                        <div class="flex space-x-2">
+                            <select id="historyType" class="form-input mb-0">
+                                <option value="all">ทั้งหมด</option>
+                                <option value="withdraw">การเบิก</option>
+                                <option value="receive">การรับ</option>
+                            </select>
+                            <input type="date" id="historyDate" class="form-input mb-0">
+                            <button id="historySearchBtn" class="btn-primary">ค้นหา</button>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table id="historyTable" class="min-w-full">
+                            <thead>
+                                <tr>
+                                    <th>วันที่-เวลา</th>
+                                    <th>ประเภท</th>
+                                    <th>ผู้ดำเนินการ</th>
+                                    <th>รายละเอียด</th>
+                                    <th>จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- History items will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add/Edit Item Modal -->
+        <div id="itemModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2 id="modalTitle" class="text-xl font-bold text-[#0F4C3A] mb-4">เพิ่มวัสดุใหม่</h2>
+                
+                <form id="itemForm">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="itemBarcode">รหัสบาร์โค้ด</label>
+                        <input class="form-input" id="itemBarcode" type="text" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="itemName">ชื่อวัสดุ</label>
+                        <input class="form-input" id="itemName" type="text" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="itemUnit">หน่วยนับ</label>
+                        <input class="form-input" id="itemUnit" type="text" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="itemQuantity">จำนวน</label>
+                        <input class="form-input" id="itemQuantity" type="number" min="0" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="itemExpiry">วันหมดอายุ (ถ้ามี)</label>
+                        <input class="form-input" id="itemExpiry" type="date">
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button type="button" class="btn-secondary mr-2 close-modal">ยกเลิก</button>
+                        <button type="submit" class="btn-primary">บันทึก</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Receipt Modal -->
+        <div id="receiptModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div id="receiptContent">
+                    <div class="text-center mb-4">
+                        <h2 class="text-xl font-bold">ใบเสร็จ</h2>
+                        <p id="receiptType" class="text-lg"></p>
+                        <p id="receiptDate"></p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <p><strong>ผู้ดำเนินการ:</strong> <span id="receiptPerson"></span></p>
+                        <p id="receiptPositionContainer"><strong>ตำแหน่ง:</strong> <span id="receiptPosition"></span></p>
+                        <p id="receiptPurposeContainer"><strong>วัตถุประสงค์:</strong> <span id="receiptPurpose"></span></p>
+                        <p id="receiptSourceContainer"><strong>แหล่งที่มา:</strong> <span id="receiptSource"></span></p>
+                    </div>
+                    
+                    <table class="min-w-full mb-4">
+                        <thead>
+                            <tr>
+                                <th>รหัสบาร์โค้ด</th>
+                                <th>รายการวัสดุ</th>
+                                <th>จำนวน</th>
+                                <th>หน่วยนับ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="receiptItems">
+                            <!-- Receipt items will be populated here -->
+                        </tbody>
+                    </table>
+                    
+                    <div class="flex justify-between mt-8">
+                        <div>
+                            <p>ลงชื่อ................................................ผู้ดำเนินการ</p>
+                            <p>(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</p>
+                        </div>
+                        <div>
+                            <p>ลงชื่อ................................................ผู้รับรอง</p>
+                            <p>(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end mt-4 no-print">
+                    <button id="printReceiptBtn" class="btn-secondary mr-2">พิมพ์</button>
+                    <button id="saveReceiptPdfBtn" class="btn-primary">บันทึกเป็น PDF</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Firebase configuration
+        // Initialize Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCV0T11S2xJZzRxq1wKlIYLKC2ZMbppDR0",
             authDomain: "epidbma-7ace1.firebaseapp.com",
@@ -193,597 +518,151 @@
             measurementId: "G-M7MXGGVPRV"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-
+        const database = firebase.database();
+        
+        // Set Thai locale for moment.js
+        moment.locale('th');
+        
+        // Global variables
+        let currentUser = null;
+        let stockItems = {};
+        let withdrawItems = [];
+        let receiveItems = [];
+        let editingItemId = null;
+        
         // DOM Elements
-        const loginSection = document.getElementById('loginSection');
-        const appContainer = document.getElementById('appContainer');
+        const loginPage = document.getElementById('loginPage');
+        const app = document.getElementById('app');
         const loginForm = document.getElementById('loginForm');
-        const registerForm = document.getElementById('registerForm');
-        const registerBtn = document.getElementById('registerBtn');
-        const registerModal = document.getElementById('registerModal');
-        const closeRegisterModal = document.getElementById('closeRegisterModal');
-        const errorMessage = document.getElementById('errorMessage');
-        const registerErrorMessage = document.getElementById('registerErrorMessage');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-
-        // Show loading
-        function showLoading() {
-            loadingOverlay.style.display = 'flex';
-        }
-
-        // Hide loading
-        function hideLoading() {
-            loadingOverlay.style.display = 'none';
-        }
-
-        // Check if user is already logged in
-        auth.onAuthStateChanged(function(user) {
-            if (user) {
-                // User is signed in
-                showApp();
-            } else {
-                // No user is signed in
-                showLogin();
-            }
-        });
-
-        // Login form submission
+        const loginError = document.getElementById('loginError');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const navLinks = document.querySelectorAll('.nav-link[data-page]');
+        const pages = document.querySelectorAll('.page');
+        
+        // Stock page elements
+        const stockSearch = document.getElementById('stockSearch');
+        const addItemBtn = document.getElementById('addItemBtn');
+        const stockTable = document.getElementById('stockTable');
+        
+        // Withdraw page elements
+        const withdrawForm = document.getElementById('withdrawForm');
+        const withdrawBarcode = document.getElementById('withdrawBarcode');
+        const withdrawItemsTable = document.getElementById('withdrawItemsTable');
+        const withdrawSubmitBtn = document.getElementById('withdrawSubmitBtn');
+        
+        // Receive page elements
+        const receiveForm = document.getElementById('receiveForm');
+        const receiveBarcode = document.getElementById('receiveBarcode');
+        const receiveItemsTable = document.getElementById('receiveItemsTable');
+        const addNewItemBtn = document.getElementById('addNewItemBtn');
+        const receiveSubmitBtn = document.getElementById('receiveSubmitBtn');
+        
+        // History page elements
+        const historyType = document.getElementById('historyType');
+        const historyDate = document.getElementById('historyDate');
+        const historySearchBtn = document.getElementById('historySearchBtn');
+        const historyTable = document.getElementById('historyTable');
+        
+        // Modal elements
+        const itemModal = document.getElementById('itemModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const itemForm = document.getElementById('itemForm');
+        const closeModalBtns = document.querySelectorAll('.close, .close-modal');
+        
+        // Receipt modal elements
+        const receiptModal = document.getElementById('receiptModal');
+        const printReceiptBtn = document.getElementById('printReceiptBtn');
+        const saveReceiptPdfBtn = document.getElementById('saveReceiptPdfBtn');
+        
+        // Authentication
         loginForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
-            showLoading();
+            loginError.classList.add('hidden');
             
             auth.signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    // Signed in
-                    hideLoading();
-                    showApp();
-                })
-                .catch((error) => {
-                    hideLoading();
-                    errorMessage.textContent = getErrorMessage(error.code);
-                    errorMessage.classList.remove('hidden');
+                .catch(function(error) {
+                    loginError.textContent = `เกิดข้อผิดพลาด: ${error.message}`;
+                    loginError.classList.remove('hidden');
                 });
         });
-
-        // Register form submission
-        registerForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('registerEmail').value;
-            const password = document.getElementById('registerPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            if (password !== confirmPassword) {
-                registerErrorMessage.textContent = 'รหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง';
-                registerErrorMessage.classList.remove('hidden');
-                return;
-            }
-            
-            showLoading();
-            
-            auth.createUserWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    // Signed up
-                    hideLoading();
-                    registerModal.classList.add('hidden');
-                    showApp();
-                })
-                .catch((error) => {
-                    hideLoading();
-                    registerErrorMessage.textContent = getErrorMessage(error.code);
-                    registerErrorMessage.classList.remove('hidden');
-                });
-        });
-
-        // Register button click
-        registerBtn.addEventListener('click', function() {
-            registerModal.classList.remove('hidden');
-        });
-
-        // Close register modal
-        closeRegisterModal.addEventListener('click', function() {
-            registerModal.classList.add('hidden');
-        });
-
-        // Close modal when clicking outside
-        window.addEventListener('click', function(e) {
-            if (e.target === registerModal) {
-                registerModal.classList.add('hidden');
-            }
-        });
-
-        // Show login section
-        function showLogin() {
-            loginSection.style.display = 'flex';
-            appContainer.style.display = 'none';
-        }
-
-        // Show app section
-        function showApp() {
-            loginSection.style.display = 'none';
-            appContainer.style.display = 'block';
-            
-            // Load your web app here
-            // This is where you would insert your web app code
-            loadWebApp();
-        }
-
-        // Load web app function
-        function loadWebApp() {
-            // This function will load your web app into the appContainer
-            // You will replace this with your actual web app code
-            
-            // For now, we'll just show a placeholder
-            appContainer.innerHTML = `
-<div class="min-h-screen flex flex-col">
-        <!-- Header -->
-        <header class="bg-white shadow-md">
-            <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-                <div class="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-[#0F4C3A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                    </svg>
-                    <h1 class="ml-2 text-xl font-bold text-[#0F4C3A]">ระบบจัดการคลังพัสดุ - กลุ่มงานระบาดวิทยา</h1>
-                </div>
-                <div class="text-sm text-gray-600" id="current-date-time"></div>
-            </div>
-        </header>
-
-        <!-- Main Content -->
-        <div class="flex flex-1">
-            <!-- Sidebar -->
-            <aside class="w-64 bg-white shadow-md p-4">
-                <nav>
-                    <div class="nav-item active" data-page="stock">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                        </svg>
-                        สต๊อกพัสดุ
-                    </div>
-                    <div class="nav-item" data-page="withdraw">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                        เบิกพัสดุ
-                    </div>
-                    <div class="nav-item" data-page="receive">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        รับพัสดุ
-                    </div>
-                    <div class="nav-item" data-page="history">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        ประวัติการเบิก-รับ
-                    </div>
-                </nav>
-            </aside>
-
-            <!-- Content Area -->
-            <main class="flex-1 p-6 overflow-auto">
-                <!-- Stock Page -->
-                <div id="stock-page" class="page">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-bold text-[#0F4C3A]">สต๊อกพัสดุ</h2>
-                        <div>
-                            <button id="add-item-btn" class="btn-primary">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                                เพิ่มรายการพัสดุ
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                        <div class="mb-4">
-                            <input type="text" id="stock-search" placeholder="ค้นหารายการพัสดุ..." class="w-full p-2 border border-gray-300 rounded-md">
-                        </div>
-                        
-                        <div class="overflow-x-auto">
-                            <table id="stock-table" class="min-w-full">
-                                <thead>
-                                    <tr>
-                                        <th>รหัสบาร์โค้ด</th>
-                                        <th>รายการพัสดุ</th>
-                                        <th>จำนวนคงเหลือ</th>
-                                        <th>หน่วยนับ</th>
-                                        <th>วันหมดอายุ</th>
-                                        <th>สถานะ</th>
-                                        <th>จัดการ</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="stock-table-body">
-                                    <!-- Stock items will be populated here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Withdraw Page -->
-                <div id="withdraw-page" class="page hidden">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-bold text-[#0F4C3A]">เบิกพัสดุ</h2>
-                    </div>
-                    
-                    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            <div>
-                                <label class="block text-gray-700 mb-2">ชื่อผู้เบิก</label>
-                                <input type="text" id="withdraw-name" class="w-full p-2 border border-gray-300 rounded-md">
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 mb-2">ตำแหน่ง</label>
-                                <input type="text" id="withdraw-position" class="w-full p-2 border border-gray-300 rounded-md">
-                            </div>
-                        </div>
-                        
-                        <div class="mb-6">
-                            <label class="block text-gray-700 mb-2">วัตถุประสงค์การใช้</label>
-                            <textarea id="withdraw-purpose" class="w-full p-2 border border-gray-300 rounded-md" rows="2"></textarea>
-                        </div>
-                        
-                        <div class="mb-6">
-                            <label class="block text-gray-700 mb-2">แสกนบาร์โค้ด</label>
-                            <input type="text" id="withdraw-barcode" class="barcode-input" placeholder="แสกนบาร์โค้ดที่นี่..." autofocus>
-                        </div>
-                        
-                        <div class="overflow-x-auto mb-6">
-                            <table class="min-w-full">
-                                <thead>
-                                    <tr>
-                                        <th>รหัสบาร์โค้ด</th>
-                                        <th>รายการพัสดุ</th>
-                                        <th>จำนวนคงเหลือ</th>
-                                        <th>จำนวนที่เบิก</th>
-                                        <th>หน่วยนับ</th>
-                                        <th>ลบ</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="withdraw-items">
-                                    <!-- Withdraw items will be populated here -->
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div class="flex justify-end">
-                            <button id="withdraw-submit" class="btn-primary">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                บันทึกการเบิก
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Receive Page -->
-                <div id="receive-page" class="page hidden">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-bold text-[#0F4C3A]">รับพัสดุ</h2>
-                    </div>
-                    
-                    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            <div>
-                                <label class="block text-gray-700 mb-2">แหล่งที่มา</label>
-                                <input type="text" id="receive-source" class="w-full p-2 border border-gray-300 rounded-md">
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 mb-2">ผู้รับ</label>
-                                <input type="text" id="receive-receiver" class="w-full p-2 border border-gray-300 rounded-md">
-                            </div>
-                        </div>
-                        
-                        <div class="mb-6">
-                            <label class="block text-gray-700 mb-2">แสกนบาร์โค้ด (สำหรับพัสดุที่มีในระบบ)</label>
-                            <input type="text" id="receive-barcode" class="barcode-input" placeholder="แสกนบาร์โค้ดที่นี่..." autofocus>
-                        </div>
-                        
-                        <div class="overflow-x-auto mb-6">
-                            <table class="min-w-full">
-                                <thead>
-                                    <tr>
-                                        <th>รหัสบาร์โค้ด</th>
-                                        <th>รายการพัสดุ</th>
-                                        <th>จำนวนที่รับ</th>
-                                        <th>หน่วยนับ</th>
-                                        <th>วันหมดอายุ</th>
-                                        <th>ลบ</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="receive-items">
-                                    <!-- Receive items will be populated here -->
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div class="flex justify-between">
-                            <button id="add-new-item-btn" class="btn-secondary">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                                เพิ่มรายการใหม่
-                            </button>
-                            <button id="receive-submit" class="btn-primary">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                บันทึกการรับ
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- History Page -->
-                <div id="history-page" class="page hidden">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-bold text-[#0F4C3A]">ประวัติการเบิก-รับ</h2>
-                    </div>
-                    
-                    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                        <div class="flex flex-wrap gap-4 mb-6">
-                            <div>
-                                <label class="block text-gray-700 mb-2">ประเภท</label>
-                                <select id="history-type" class="p-2 border border-gray-300 rounded-md">
-                                    <option value="all">ทั้งหมด</option>
-                                    <option value="withdraw">การเบิก</option>
-                                    <option value="receive">การรับ</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 mb-2">จากวันที่</label>
-                                <input type="date" id="history-start-date" class="p-2 border border-gray-300 rounded-md">
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 mb-2">ถึงวันที่</label>
-                                <input type="date" id="history-end-date" class="p-2 border border-gray-300 rounded-md">
-                            </div>
-                            <div class="flex items-end">
-                                <button id="history-search" class="btn-primary">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                    </svg>
-                                    ค้นหา
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full">
-                                <thead>
-                                    <tr>
-                                        <th>วันที่</th>
-                                        <th>เวลา</th>
-                                        <th>ประเภท</th>
-                                        <th>ผู้ดำเนินการ</th>
-                                        <th>รายละเอียด</th>
-                                        <th>จัดการ</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="history-items">
-                                    <!-- History items will be populated here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>
-    </div>
-
-    <!-- Add/Edit Item Modal -->
-    <div id="item-modal" class="modal">
-        <div class="modal-content">
-            <h3 class="text-xl font-bold text-[#0F4C3A] mb-4" id="modal-title">เพิ่มรายการพัสดุ</h3>
-            
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">รหัสบาร์โค้ด</label>
-                <input type="text" id="item-barcode" class="w-full p-2 border border-gray-300 rounded-md">
-            </div>
-            
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">รายการพัสดุ</label>
-                <input type="text" id="item-name" class="w-full p-2 border border-gray-300 rounded-md">
-            </div>
-            
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">จำนวน</label>
-                <input type="number" id="item-quantity" class="w-full p-2 border border-gray-300 rounded-md" min="0">
-            </div>
-            
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">หน่วยนับ</label>
-                <input type="text" id="item-unit" class="w-full p-2 border border-gray-300 rounded-md">
-            </div>
-            
-            <div class="mb-4">
-                <label class="block text-gray-700 mb-2">วันหมดอายุ (ถ้ามี)</label>
-                <input type="date" id="item-expiry" class="w-full p-2 border border-gray-300 rounded-md">
-            </div>
-            
-            <div class="flex justify-end gap-2">
-                <button id="modal-cancel" class="btn-secondary">ยกเลิก</button>
-                <button id="modal-save" class="btn-primary">บันทึก</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Receipt Modal -->
-    <div id="receipt-modal" class="modal">
-        <div class="modal-content">
-            <div id="receipt-content" class="receipt">
-                <div class="receipt-header">
-                    <h2 class="text-xl font-bold">กลุ่มงานระบาดวิทยา</h2>
-                    <p id="receipt-title" class="text-lg">ใบเบิกพัสดุ</p>
-                    <p id="receipt-date"></p>
-                </div>
-                
-                <div class="mb-4">
-                    <p id="receipt-person"></p>
-                    <p id="receipt-details"></p>
-                </div>
-                
-                <table class="receipt-table">
-                    <thead>
-                        <tr>
-                            <th>ลำดับ</th>
-                            <th>รหัสบาร์โค้ด</th>
-                            <th>รายการพัสดุ</th>
-                            <th>จำนวน</th>
-                            <th>หน่วยนับ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="receipt-items">
-                        <!-- Receipt items will be populated here -->
-                    </tbody>
-                </table>
-                
-                <div class="receipt-footer">
-                    <div class="signature">
-                        <div class="signature-line"></div>
-                        <p>ผู้เบิก/ผู้รับ</p>
-                    </div>
-                    <div class="signature">
-                        <div class="signature-line"></div>
-                        <p>ผู้จ่าย/ผู้บันทึก</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="flex justify-end gap-2 mt-4">
-                <button id="receipt-print" class="btn-secondary">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                    </svg>
-                    พิมพ์
-                </button>
-                <button id="receipt-pdf" class="btn-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    บันทึก PDF
-                </button>
-                <button id="receipt-close" class="btn-secondary">ปิด</button>
-            </div>
-        </div>
-    </div>
-            `;
-            
-            // Add logout functionality
-            document.getElementById('logoutBtn').addEventListener('click', function() {
-                auth.signOut().then(() => {
-                    showLogin();
-                }).catch((error) => {
-                    console.error('Error signing out:', error);
-                });
-            });
-        }
-// Initialize Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyCV0T11S2xJZzRxq1wKlIYLKC2ZMbppDR0",
-            authDomain: "epidbma-7ace1.firebaseapp.com",
-            databaseURL: "https://epidbma-7ace1-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "epidbma-7ace1",
-            storageBucket: "epidbma-7ace1.firebasestorage.app",
-            messagingSenderId: "256371121756",
-            appId: "1:256371121756:web:904b80ff04948ab7d0d099",
-            measurementId: "G-M7MXGGVPRV"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        // Set up moment.js for Thai locale
-        moment.locale('th');
-
-        // Update current date and time
-        function updateDateTime() {
-            const now = moment();
-            document.getElementById('current-date-time').textContent = now.format('วันที่ D MMMM YYYY เวลา HH:mm:ss น.');
-        }
         
-        updateDateTime();
-        setInterval(updateDateTime, 1000);
-
+        logoutBtn.addEventListener('click', function() {
+            auth.signOut();
+        });
+        
+        auth.onAuthStateChanged(function(user) {
+            if (user) {
+                currentUser = user;
+                loginPage.classList.add('hidden');
+                app.classList.remove('hidden');
+                loadStockItems();
+                loadHistoryItems();
+            } else {
+                currentUser = null;
+                loginPage.classList.remove('hidden');
+                app.classList.add('hidden');
+                document.getElementById('email').value = '';
+                document.getElementById('password').value = '';
+            }
+        });
+        
         // Navigation
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', function() {
-                // Update active state
-                document.querySelectorAll('.nav-item').forEach(nav => {
-                    nav.classList.remove('active');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetPage = this.getAttribute('data-page');
+                
+                navLinks.forEach(navLink => {
+                    navLink.classList.remove('active');
                 });
+                
                 this.classList.add('active');
                 
-                // Show selected page
-                const pageId = this.getAttribute('data-page');
-                document.querySelectorAll('.page').forEach(page => {
+                pages.forEach(page => {
                     page.classList.add('hidden');
                 });
-                document.getElementById(`${pageId}-page`).classList.remove('hidden');
                 
-                // Focus on barcode input if on withdraw or receive page
-                if (pageId === 'withdraw') {
-                    document.getElementById('withdraw-barcode').focus();
-                } else if (pageId === 'receive') {
-                    document.getElementById('receive-barcode').focus();
-                }
+                document.getElementById(`${targetPage}Page`).classList.remove('hidden');
                 
-                // Load data for the page
-                if (pageId === 'stock') {
+                // Refresh data when switching to pages
+                if (targetPage === 'stock') {
                     loadStockItems();
-                } else if (pageId === 'history') {
+                } else if (targetPage === 'history') {
                     loadHistoryItems();
                 }
             });
         });
-
-        // Stock Management
-        let stockItems = [];
         
+        // Stock Management
         function loadStockItems() {
-            db.ref('stock').on('value', (snapshot) => {
-                stockItems = [];
-                const data = snapshot.val();
-                
-                if (data) {
-                    Object.keys(data).forEach(key => {
-                        stockItems.push({
-                            id: key,
-                            ...data[key]
-                        });
-                    });
-                }
-                
+            database.ref('stock').on('value', snapshot => {
+                stockItems = snapshot.val() || {};
                 renderStockTable();
-                checkExpiryDates();
             });
         }
         
         function renderStockTable() {
-            const tableBody = document.getElementById('stock-table-body');
-            tableBody.innerHTML = '';
+            const tbody = stockTable.querySelector('tbody');
+            tbody.innerHTML = '';
             
-            if (stockItems.length === 0) {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td colspan="7" class="text-center py-4">ไม่พบรายการพัสดุ</td>
-                `;
-                tableBody.appendChild(row);
-                return;
-            }
+            const searchTerm = stockSearch.value.toLowerCase();
             
-            stockItems.forEach(item => {
+            Object.keys(stockItems).forEach(id => {
+                const item = stockItems[id];
+                
+                // Apply search filter
+                if (searchTerm && !item.barcode.toLowerCase().includes(searchTerm) && 
+                    !item.name.toLowerCase().includes(searchTerm)) {
+                    return;
+                }
+                
                 const row = document.createElement('tr');
                 
                 // Check expiry status
@@ -791,11 +670,11 @@
                 let expiryClass = '';
                 
                 if (item.expiry) {
-                    const expiryDate = moment(item.expiry);
-                    const today = moment();
-                    const daysUntilExpiry = expiryDate.diff(today, 'days');
+                    const expiryDate = new Date(item.expiry);
+                    const today = new Date();
+                    const daysUntilExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
                     
-                    if (daysUntilExpiry < 0) {
+                    if (daysUntilExpiry <= 0) {
                         expiryStatus = 'หมดอายุแล้ว';
                         expiryClass = 'expire-warning';
                     } else if (daysUntilExpiry <= 30) {
@@ -809,243 +688,196 @@
                 }
                 
                 row.innerHTML = `
-                    <td>${item.barcode || '-'}</td>
+                    <td>${item.barcode}</td>
                     <td>${item.name}</td>
                     <td>${item.quantity}</td>
-                    <td>${item.unit || 'ชิ้น'}</td>
-                    <td>${item.expiry ? moment(item.expiry).format('D MMM YYYY') : '-'}</td>
+                    <td>${item.unit}</td>
+                    <td>${item.expiry ? moment(item.expiry).format('DD/MM/YYYY') : '-'}</td>
                     <td class="${expiryClass}">${expiryStatus}</td>
                     <td>
-                        <button class="text-blue-600 hover:text-blue-800 mr-2 edit-item" data-id="${item.id}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                        </button>
+                        <button class="btn-secondary edit-item" data-id="${id}">แก้ไข</button>
+                        <button class="btn-danger delete-item" data-id="${id}">ลบ</button>
                     </td>
                 `;
                 
-                tableBody.appendChild(row);
+                tbody.appendChild(row);
             });
             
-            // Add event listeners to edit buttons
-            document.querySelectorAll('.edit-item').forEach(button => {
-                button.addEventListener('click', function() {
-                    const itemId = this.getAttribute('data-id');
-                    editItem(itemId);
+            // Add event listeners to edit and delete buttons
+            document.querySelectorAll('.edit-item').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    openEditItemModal(id);
+                });
+            });
+            
+            document.querySelectorAll('.delete-item').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    if (confirm('คุณต้องการลบรายการนี้ใช่หรือไม่?')) {
+                        database.ref(`stock/${id}`).remove();
+                    }
                 });
             });
         }
         
-        function checkExpiryDates() {
-            const today = moment();
-            const expiringItems = stockItems.filter(item => {
-                if (!item.expiry) return false;
-                
-                const expiryDate = moment(item.expiry);
-                const daysUntilExpiry = expiryDate.diff(today, 'days');
-                
-                return daysUntilExpiry <= 30 && daysUntilExpiry >= 0;
-            });
-            
-            if (expiringItems.length > 0) {
-                alert(`มีพัสดุ ${expiringItems.length} รายการที่ใกล้หมดอายุ กรุณาตรวจสอบในหน้าสต๊อก`);
-            }
-        }
+        stockSearch.addEventListener('input', renderStockTable);
         
-        // Add/Edit Item Modal
-        document.getElementById('add-item-btn').addEventListener('click', function() {
-            openItemModal();
+        addItemBtn.addEventListener('click', function() {
+            openAddItemModal();
         });
         
-        document.getElementById('modal-cancel').addEventListener('click', function() {
-            closeItemModal();
-        });
-        
-        document.getElementById('modal-save').addEventListener('click', function() {
-            saveItem();
-        });
-        
-        function openItemModal(itemId = null) {
-            const modal = document.getElementById('item-modal');
-            const modalTitle = document.getElementById('modal-title');
-            
-            // Clear form
-            document.getElementById('item-barcode').value = '';
-            document.getElementById('item-name').value = '';
-            document.getElementById('item-quantity').value = '';
-            document.getElementById('item-unit').value = 'ชิ้น';
-            document.getElementById('item-expiry').value = '';
-            
-            if (itemId) {
-                // Edit mode
-                modalTitle.textContent = 'แก้ไขรายการพัสดุ';
-                const item = stockItems.find(item => item.id === itemId);
-                
-                if (item) {
-                    document.getElementById('item-barcode').value = item.barcode || '';
-                    document.getElementById('item-name').value = item.name || '';
-                    document.getElementById('item-quantity').value = item.quantity || '';
-                    document.getElementById('item-unit').value = item.unit || 'ชิ้น';
-                    document.getElementById('item-expiry').value = item.expiry || '';
-                }
-                
-                document.getElementById('modal-save').setAttribute('data-id', itemId);
-            } else {
-                // Add mode
-                modalTitle.textContent = 'เพิ่มรายการพัสดุ';
-                document.getElementById('modal-save').removeAttribute('data-id');
-            }
-            
-            modal.style.display = 'flex';
+        function openAddItemModal() {
+            modalTitle.textContent = 'เพิ่มวัสดุใหม่';
+            itemForm.reset();
+            editingItemId = null;
+            itemModal.style.display = 'block';
         }
         
-        function closeItemModal() {
-            const modal = document.getElementById('item-modal');
-            modal.style.display = 'none';
-        }
-        
-        function editItem(itemId) {
-            openItemModal(itemId);
-        }
-        
-        function saveItem() {
-            const itemId = document.getElementById('modal-save').getAttribute('data-id');
-            const barcode = document.getElementById('item-barcode').value.trim();
-            const name = document.getElementById('item-name').value.trim();
-            const quantity = parseInt(document.getElementById('item-quantity').value) || 0;
-            const unit = document.getElementById('item-unit').value.trim() || 'ชิ้น';
-            const expiry = document.getElementById('item-expiry').value || null;
+        function openEditItemModal(id) {
+            modalTitle.textContent = 'แก้ไขวัสดุ';
+            editingItemId = id;
             
-            if (!name) {
-                alert('กรุณาระบุชื่อรายการพัสดุ');
-                return;
-            }
+            const item = stockItems[id];
+            document.getElementById('itemBarcode').value = item.barcode;
+            document.getElementById('itemName').value = item.name;
+            document.getElementById('itemUnit').value = item.unit;
+            document.getElementById('itemQuantity').value = item.quantity;
+            document.getElementById('itemExpiry').value = item.expiry || '';
+            
+            itemModal.style.display = 'block';
+        }
+        
+        itemForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const barcode = document.getElementById('itemBarcode').value;
+            const name = document.getElementById('itemName').value;
+            const unit = document.getElementById('itemUnit').value;
+            const quantity = parseInt(document.getElementById('itemQuantity').value);
+            const expiry = document.getElementById('itemExpiry').value || null;
             
             const itemData = {
                 barcode,
                 name,
-                quantity,
                 unit,
+                quantity,
                 expiry
             };
             
-            if (itemId) {
-                // Update existing item
-                db.ref(`stock/${itemId}`).update(itemData)
-                    .then(() => {
-                        closeItemModal();
-                        alert('อัปเดตรายการพัสดุเรียบร้อยแล้ว');
-                    })
-                    .catch(error => {
-                        console.error('Error updating item:', error);
-                        alert('เกิดข้อผิดพลาดในการอัปเดตรายการพัสดุ');
-                    });
+            if (editingItemId) {
+                database.ref(`stock/${editingItemId}`).update(itemData);
             } else {
-                // Add new item
-                db.ref('stock').push(itemData)
-                    .then(() => {
-                        closeItemModal();
-                        alert('เพิ่มรายการพัสดุเรียบร้อยแล้ว');
-                    })
-                    .catch(error => {
-                        console.error('Error adding item:', error);
-                        alert('เกิดข้อผิดพลาดในการเพิ่มรายการพัสดุ');
-                    });
-            }
-        }
-        
-        // Withdraw Management
-        let withdrawItems = [];
-        
-        document.getElementById('withdraw-barcode').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                const barcode = this.value.trim();
+                // Check if barcode already exists
+                let barcodeExists = false;
+                Object.values(stockItems).forEach(item => {
+                    if (item.barcode === barcode) {
+                        barcodeExists = true;
+                    }
+                });
                 
-                if (barcode) {
-                    addWithdrawItem(barcode);
-                    this.value = '';
+                if (barcodeExists) {
+                    alert('รหัสบาร์โค้ดนี้มีอยู่ในระบบแล้ว');
+                    return;
                 }
+                
+                database.ref('stock').push(itemData);
+            }
+            
+            itemModal.style.display = 'none';
+        });
+        
+        // Close modals
+        closeModalBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                itemModal.style.display = 'none';
+                receiptModal.style.display = 'none';
+            });
+        });
+        
+        window.addEventListener('click', function(e) {
+            if (e.target === itemModal) {
+                itemModal.style.display = 'none';
+            }
+            if (e.target === receiptModal) {
+                receiptModal.style.display = 'none';
             }
         });
         
-        function addWithdrawItem(barcode) {
-            // Find item in stock
-            const stockItem = stockItems.find(item => item.barcode === barcode);
-            
-            if (!stockItem) {
-                alert('ไม่พบรายการพัสดุที่มีรหัสบาร์โค้ดนี้');
-                return;
-            }
-            
-            // Check if item already in withdraw list
-            const existingItem = withdrawItems.find(item => item.barcode === barcode);
-            
-            if (existingItem) {
-                // Increment quantity
-                existingItem.withdrawQuantity += 1;
+        // Withdraw Management
+        withdrawBarcode.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
                 
-                // Check if enough stock
-                if (existingItem.withdrawQuantity > stockItem.quantity) {
-                    existingItem.withdrawQuantity = stockItem.quantity;
-                    alert('จำนวนที่เบิกเกินจำนวนคงเหลือในสต๊อก');
-                }
-            } else {
-                // Add new item to withdraw list
-                withdrawItems.push({
-                    id: stockItem.id,
-                    barcode: stockItem.barcode,
-                    name: stockItem.name,
-                    quantity: stockItem.quantity,
-                    withdrawQuantity: 1,
-                    unit: stockItem.unit || 'ชิ้น'
+                const barcode = this.value.trim();
+                if (!barcode) return;
+                
+                let found = false;
+                Object.keys(stockItems).forEach(id => {
+                    const item = stockItems[id];
+                    if (item.barcode === barcode) {
+                        found = true;
+                        
+                        // Check if item already in the list
+                        const existingIndex = withdrawItems.findIndex(wi => wi.id === id);
+                        if (existingIndex !== -1) {
+                            // Increment quantity if already in list
+                            withdrawItems[existingIndex].withdrawQuantity += 1;
+                        } else {
+                            // Add new item to list
+                            withdrawItems.push({
+                                id,
+                                barcode: item.barcode,
+                                name: item.name,
+                                quantity: item.quantity,
+                                unit: item.unit,
+                                withdrawQuantity: 1
+                            });
+                        }
+                        
+                        renderWithdrawItemsTable();
+                    }
                 });
+                
+                if (!found) {
+                    alert('ไม่พบรหัสบาร์โค้ดนี้ในระบบ');
+                }
+                
+                this.value = '';
+                this.focus();
             }
-            
-            renderWithdrawItems();
-        }
+        });
         
-        function renderWithdrawItems() {
-            const tableBody = document.getElementById('withdraw-items');
-            tableBody.innerHTML = '';
-            
-            if (withdrawItems.length === 0) {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td colspan="6" class="text-center py-4">ยังไม่มีรายการเบิก</td>
-                `;
-                tableBody.appendChild(row);
-                return;
-            }
+        function renderWithdrawItemsTable() {
+            const tbody = withdrawItemsTable.querySelector('tbody');
+            tbody.innerHTML = '';
             
             withdrawItems.forEach((item, index) => {
                 const row = document.createElement('tr');
+                
                 row.innerHTML = `
-                    <td>${item.barcode || '-'}</td>
+                    <td>${item.barcode}</td>
                     <td>${item.name}</td>
                     <td>${item.quantity}</td>
-                    <td>
-                        <input type="number" class="withdraw-quantity p-1 border border-gray-300 rounded w-20" 
-                               data-index="${index}" value="${item.withdrawQuantity}" min="1" max="${item.quantity}">
-                    </td>
                     <td>${item.unit}</td>
                     <td>
-                        <button class="text-red-600 hover:text-red-800 remove-withdraw-item" data-index="${index}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
+                        <input type="number" class="form-input mb-0 withdraw-quantity" 
+                               data-index="${index}" value="${item.withdrawQuantity}" 
+                               min="1" max="${item.quantity}">
+                    </td>
+                    <td>
+                        <button class="btn-danger remove-withdraw-item" data-index="${index}">ลบ</button>
                     </td>
                 `;
                 
-                tableBody.appendChild(row);
+                tbody.appendChild(row);
             });
             
             // Add event listeners
             document.querySelectorAll('.withdraw-quantity').forEach(input => {
                 input.addEventListener('change', function() {
                     const index = parseInt(this.getAttribute('data-index'));
-                    const value = parseInt(this.value) || 1;
+                    const value = parseInt(this.value);
                     
                     if (value < 1) {
                         this.value = 1;
@@ -1053,55 +885,46 @@
                     } else if (value > withdrawItems[index].quantity) {
                         this.value = withdrawItems[index].quantity;
                         withdrawItems[index].withdrawQuantity = withdrawItems[index].quantity;
-                        alert('จำนวนที่เบิกเกินจำนวนคงเหลือในสต๊อก');
                     } else {
                         withdrawItems[index].withdrawQuantity = value;
                     }
                 });
             });
             
-            document.querySelectorAll('.remove-withdraw-item').forEach(button => {
-                button.addEventListener('click', function() {
+            document.querySelectorAll('.remove-withdraw-item').forEach(btn => {
+                btn.addEventListener('click', function() {
                     const index = parseInt(this.getAttribute('data-index'));
                     withdrawItems.splice(index, 1);
-                    renderWithdrawItems();
+                    renderWithdrawItemsTable();
                 });
             });
         }
         
-        document.getElementById('withdraw-submit').addEventListener('click', function() {
-            submitWithdraw();
-        });
-        
-        function submitWithdraw() {
-            const name = document.getElementById('withdraw-name').value.trim();
-            const position = document.getElementById('withdraw-position').value.trim();
-            const purpose = document.getElementById('withdraw-purpose').value.trim();
-            
-            if (!name) {
-                alert('กรุณาระบุชื่อผู้เบิก');
-                return;
-            }
-            
-            if (!position) {
-                alert('กรุณาระบุตำแหน่ง');
-                return;
-            }
-            
+        withdrawSubmitBtn.addEventListener('click', function() {
             if (withdrawItems.length === 0) {
-                alert('กรุณาเพิ่มรายการพัสดุที่ต้องการเบิก');
+                alert('กรุณาเพิ่มรายการวัสดุที่ต้องการเบิก');
                 return;
             }
             
-            const now = moment();
-            const withdrawData = {
+            const name = document.getElementById('withdrawName').value;
+            const position = document.getElementById('withdrawPosition').value;
+            const purpose = document.getElementById('withdrawPurpose').value;
+            
+            if (!name || !position || !purpose) {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                return;
+            }
+            
+            // Create transaction record
+            const timestamp = Date.now();
+            const transaction = {
                 type: 'withdraw',
+                timestamp,
+                date: moment().format('YYYY-MM-DD'),
+                time: moment().format('HH:mm:ss'),
                 name,
                 position,
                 purpose,
-                date: now.format('YYYY-MM-DD'),
-                time: now.format('HH:mm:ss'),
-                timestamp: now.valueOf(),
                 items: withdrawItems.map(item => ({
                     id: item.id,
                     barcode: item.barcode,
@@ -1111,132 +934,118 @@
                 }))
             };
             
-            // Add to history
-            db.ref('history').push(withdrawData)
-                .then((ref) => {
-                    const historyId = ref.key;
-                    
-                    // Update stock quantities
-                    const updates = {};
-                    
-                    withdrawItems.forEach(item => {
-                        const newQuantity = item.quantity - item.withdrawQuantity;
-                        updates[`stock/${item.id}/quantity`] = newQuantity;
-                    });
-                    
-                    return db.ref().update(updates).then(() => historyId);
+            // Update stock quantities
+            const updates = {};
+            let hasError = false;
+            
+            withdrawItems.forEach(item => {
+                const newQuantity = item.quantity - item.withdrawQuantity;
+                
+                if (newQuantity < 0) {
+                    alert(`วัสดุ ${item.name} มีไม่เพียงพอสำหรับการเบิก`);
+                    hasError = true;
+                    return;
+                }
+                
+                updates[`stock/${item.id}/quantity`] = newQuantity;
+            });
+            
+            if (hasError) return;
+            
+            // Save transaction and update stock
+            database.ref('transactions').push(transaction)
+                .then(() => {
+                    return database.ref().update(updates);
                 })
-                .then((historyId) => {
-                    // Show receipt
-                    showReceipt(historyId, 'withdraw');
+                .then(() => {
+                    showReceipt('withdraw', transaction);
                     
-                    // Clear form
-                    document.getElementById('withdraw-name').value = '';
-                    document.getElementById('withdraw-position').value = '';
-                    document.getElementById('withdraw-purpose').value = '';
+                    // Reset form
+                    document.getElementById('withdrawName').value = '';
+                    document.getElementById('withdrawPosition').value = '';
+                    document.getElementById('withdrawPurpose').value = '';
                     withdrawItems = [];
-                    renderWithdrawItems();
-                    
-                    // Focus on barcode input
-                    document.getElementById('withdraw-barcode').focus();
-                    
-                    alert('บันทึกการเบิกพัสดุเรียบร้อยแล้ว');
+                    renderWithdrawItemsTable();
                 })
                 .catch(error => {
-                    console.error('Error submitting withdraw:', error);
-                    alert('เกิดข้อผิดพลาดในการบันทึกการเบิกพัสดุ');
+                    alert(`เกิดข้อผิดพลาด: ${error.message}`);
                 });
-        }
+        });
         
         // Receive Management
-        let receiveItems = [];
-        
-        document.getElementById('receive-barcode').addEventListener('keydown', function(e) {
+        receiveBarcode.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                const barcode = this.value.trim();
                 
-                if (barcode) {
-                    addReceiveItem(barcode);
-                    this.value = '';
+                const barcode = this.value.trim();
+                if (!barcode) return;
+                
+                let found = false;
+                Object.keys(stockItems).forEach(id => {
+                    const item = stockItems[id];
+                    if (item.barcode === barcode) {
+                        found = true;
+                        
+                        // Check if item already in the list
+                        const existingIndex = receiveItems.findIndex(ri => ri.id === id);
+                        if (existingIndex !== -1) {
+                            // Increment quantity if already in list
+                            receiveItems[existingIndex].receiveQuantity += 1;
+                        } else {
+                            // Add new item to list
+                            receiveItems.push({
+                                id,
+                                barcode: item.barcode,
+                                name: item.name,
+                                quantity: item.quantity,
+                                unit: item.unit,
+                                receiveQuantity: 1,
+                                isNew: false
+                            });
+                        }
+                        
+                        renderReceiveItemsTable();
+                    }
+                });
+                
+                if (!found) {
+                    alert('ไม่พบรหัสบาร์โค้ดนี้ในระบบ กรุณาเพิ่มรายการใหม่');
                 }
+                
+                this.value = '';
+                this.focus();
             }
         });
         
-        function addReceiveItem(barcode) {
-            // Find item in stock
-            const stockItem = stockItems.find(item => item.barcode === barcode);
-            
-            if (!stockItem) {
-                alert('ไม่พบรายการพัสดุที่มีรหัสบาร์โค้ดนี้ กรุณาเพิ่มรายการใหม่');
-                return;
-            }
-            
-            // Check if item already in receive list
-            const existingItem = receiveItems.find(item => item.barcode === barcode);
-            
-            if (existingItem) {
-                // Increment quantity
-                existingItem.receiveQuantity += 1;
-            } else {
-                // Add new item to receive list
-                receiveItems.push({
-                    id: stockItem.id,
-                    barcode: stockItem.barcode,
-                    name: stockItem.name,
-                    receiveQuantity: 1,
-                    unit: stockItem.unit || 'ชิ้น',
-                    expiry: stockItem.expiry || ''
-                });
-            }
-            
-            renderReceiveItems();
-        }
-        
-        function renderReceiveItems() {
-            const tableBody = document.getElementById('receive-items');
-            tableBody.innerHTML = '';
-            
-            if (receiveItems.length === 0) {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td colspan="6" class="text-center py-4">ยังไม่มีรายการรับ</td>
-                `;
-                tableBody.appendChild(row);
-                return;
-            }
+        function renderReceiveItemsTable() {
+            const tbody = receiveItemsTable.querySelector('tbody');
+            tbody.innerHTML = '';
             
             receiveItems.forEach((item, index) => {
                 const row = document.createElement('tr');
+                
                 row.innerHTML = `
-                    <td>${item.barcode || '-'}</td>
+                    <td>${item.barcode}</td>
                     <td>${item.name}</td>
-                    <td>
-                        <input type="number" class="receive-quantity p-1 border border-gray-300 rounded w-20" 
-                               data-index="${index}" value="${item.receiveQuantity}" min="1">
-                    </td>
+                    <td>${item.isNew ? 0 : item.quantity}</td>
                     <td>${item.unit}</td>
                     <td>
-                        <input type="date" class="receive-expiry p-1 border border-gray-300 rounded" 
-                               data-index="${index}" value="${item.expiry}">
+                        <input type="number" class="form-input mb-0 receive-quantity" 
+                               data-index="${index}" value="${item.receiveQuantity}" min="1">
                     </td>
                     <td>
-                        <button class="text-red-600 hover:text-red-800 remove-receive-item" data-index="${index}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
+                        <button class="btn-danger remove-receive-item" data-index="${index}">ลบ</button>
                     </td>
                 `;
                 
-                tableBody.appendChild(row);
+                tbody.appendChild(row);
             });
             
             // Add event listeners
             document.querySelectorAll('.receive-quantity').forEach(input => {
                 input.addEventListener('change', function() {
                     const index = parseInt(this.getAttribute('data-index'));
-                    const value = parseInt(this.value) || 1;
+                    const value = parseInt(this.value);
                     
                     if (value < 1) {
                         this.value = 1;
@@ -1247,445 +1056,269 @@
                 });
             });
             
-            document.querySelectorAll('.receive-expiry').forEach(input => {
-                input.addEventListener('change', function() {
-                    const index = parseInt(this.getAttribute('data-index'));
-                    receiveItems[index].expiry = this.value;
-                });
-            });
-            
-            document.querySelectorAll('.remove-receive-item').forEach(button => {
-                button.addEventListener('click', function() {
+            document.querySelectorAll('.remove-receive-item').forEach(btn => {
+                btn.addEventListener('click', function() {
                     const index = parseInt(this.getAttribute('data-index'));
                     receiveItems.splice(index, 1);
-                    renderReceiveItems();
+                    renderReceiveItemsTable();
                 });
             });
         }
         
-        document.getElementById('add-new-item-btn').addEventListener('click', function() {
-            openNewItemModal();
-        });
-        
-        function openNewItemModal() {
-            openItemModal();
+        addNewItemBtn.addEventListener('click', function() {
+            openAddItemModal();
             
-            // After saving, add to receive list
-            const originalSaveItem = saveItem;
-            saveItem = function() {
-                const barcode = document.getElementById('item-barcode').value.trim();
-                const name = document.getElementById('item-name').value.trim();
-                const quantity = parseInt(document.getElementById('item-quantity').value) || 0;
-                const unit = document.getElementById('item-unit').value.trim() || 'ชิ้น';
-                const expiry = document.getElementById('item-expiry').value || null;
+            // Add event listener to add new item to receive list after saving
+            const originalSubmitHandler = itemForm.onsubmit;
+            
+            itemForm.onsubmit = function(e) {
+                e.preventDefault();
                 
-                if (!name) {
-                    alert('กรุณาระบุชื่อรายการพัสดุ');
+                const barcode = document.getElementById('itemBarcode').value;
+                const name = document.getElementById('itemName').value;
+                const unit = document.getElementById('itemUnit').value;
+                const quantity = parseInt(document.getElementById('itemQuantity').value);
+                const expiry = document.getElementById('itemExpiry').value || null;
+                
+                // Check if barcode already exists
+                let barcodeExists = false;
+                Object.values(stockItems).forEach(item => {
+                    if (item.barcode === barcode) {
+                        barcodeExists = true;
+                    }
+                });
+                
+                if (barcodeExists) {
+                    alert('รหัสบาร์โค้ดนี้มีอยู่ในระบบแล้ว');
                     return;
                 }
                 
-                // Add to receive list
+                // Add to receive items
                 receiveItems.push({
                     barcode,
                     name,
-                    receiveQuantity: quantity,
                     unit,
+                    quantity: 0,
+                    receiveQuantity: quantity,
                     expiry,
                     isNew: true
                 });
                 
-                renderReceiveItems();
-                closeItemModal();
+                renderReceiveItemsTable();
+                itemModal.style.display = 'none';
                 
-                // Restore original saveItem function
-                saveItem = originalSaveItem;
+                // Restore original submit handler
+                itemForm.onsubmit = originalSubmitHandler;
             };
-        }
-        
-        document.getElementById('receive-submit').addEventListener('click', function() {
-            submitReceive();
         });
         
-        function submitReceive() {
-            const source = document.getElementById('receive-source').value.trim();
-            const receiver = document.getElementById('receive-receiver').value.trim();
-            
-            if (!source) {
-                alert('กรุณาระบุแหล่งที่มา');
-                return;
-            }
-            
-            if (!receiver) {
-                alert('กรุณาระบุผู้รับ');
-                return;
-            }
-            
+        receiveSubmitBtn.addEventListener('click', function() {
             if (receiveItems.length === 0) {
-                alert('กรุณาเพิ่มรายการพัสดุที่ต้องการรับ');
+                alert('กรุณาเพิ่มรายการวัสดุที่ต้องการรับ');
                 return;
             }
             
-            const now = moment();
-            const receiveData = {
+            const source = document.getElementById('receiveSource').value;
+            const name = document.getElementById('receiveName').value;
+            
+            if (!source || !name) {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                return;
+            }
+            
+            // Create transaction record
+            const timestamp = Date.now();
+            const transaction = {
                 type: 'receive',
+                timestamp,
+                date: moment().format('YYYY-MM-DD'),
+                time: moment().format('HH:mm:ss'),
                 source,
-                receiver,
-                date: now.format('YYYY-MM-DD'),
-                time: now.format('HH:mm:ss'),
-                timestamp: now.valueOf(),
+                name,
                 items: receiveItems.map(item => ({
-                    id: item.id,
                     barcode: item.barcode,
                     name: item.name,
                     quantity: item.receiveQuantity,
-                    unit: item.unit,
-                    expiry: item.expiry
+                    unit: item.unit
                 }))
             };
             
-            // Add to history
-            db.ref('history').push(receiveData)
-                .then((ref) => {
-                    const historyId = ref.key;
-                    
-                    // Update stock quantities and add new items
-                    const updates = {};
-                    const newItems = [];
-                    
-                    receiveItems.forEach(item => {
-                        if (item.isNew) {
-                            // Add new item to stock
-                            const newItemRef = db.ref('stock').push();
-                            const newItemId = newItemRef.key;
-                            
-                            updates[`stock/${newItemId}`] = {
-                                barcode: item.barcode,
-                                name: item.name,
-                                quantity: item.receiveQuantity,
-                                unit: item.unit,
-                                expiry: item.expiry
-                            };
-                            
-                            newItems.push({
-                                id: newItemId,
-                                ...updates[`stock/${newItemId}`]
-                            });
-                        } else {
-                            // Update existing item
-                            const stockItem = stockItems.find(stockItem => stockItem.id === item.id);
-                            const newQuantity = stockItem.quantity + item.receiveQuantity;
-                            updates[`stock/${item.id}/quantity`] = newQuantity;
-                            
-                            // Update expiry date if provided
-                            if (item.expiry) {
-                                updates[`stock/${item.id}/expiry`] = item.expiry;
-                            }
-                        }
+            // Update stock quantities or add new items
+            const updates = {};
+            const newItems = [];
+            
+            receiveItems.forEach(item => {
+                if (item.isNew) {
+                    // New item to be added to stock
+                    newItems.push({
+                        barcode: item.barcode,
+                        name: item.name,
+                        unit: item.unit,
+                        quantity: item.receiveQuantity,
+                        expiry: item.expiry || null
                     });
-                    
-                    return db.ref().update(updates).then(() => {
-                        return {
-                            historyId,
-                            newItems
-                        };
-                    });
-                })
-                .then(({ historyId, newItems }) => {
-                    // Update history with new item IDs
-                    if (newItems.length > 0) {
-                        const historyUpdates = {};
-                        
-                        receiveItems.forEach((item, index) => {
-                            if (item.isNew) {
-                                const newItem = newItems.find(newItem => newItem.barcode === item.barcode && newItem.name === item.name);
-                                if (newItem) {
-                                    historyUpdates[`history/${historyId}/items/${index}/id`] = newItem.id;
-                                }
-                            }
-                        });
-                        
-                        return db.ref().update(historyUpdates).then(() => historyId);
+                } else {
+                    // Update existing item quantity
+                    const newQuantity = item.quantity + item.receiveQuantity;
+                    updates[`stock/${item.id}/quantity`] = newQuantity;
+                }
+            });
+            
+            // Save transaction, update stock, and add new items
+            database.ref('transactions').push(transaction)
+                .then(() => {
+                    // Update existing items
+                    if (Object.keys(updates).length > 0) {
+                        return database.ref().update(updates);
                     }
-                    
-                    return historyId;
+                    return Promise.resolve();
                 })
-                .then((historyId) => {
-                    // Show receipt
-                    showReceipt(historyId, 'receive');
+                .then(() => {
+                    // Add new items
+                    const promises = newItems.map(item => database.ref('stock').push(item));
+                    return Promise.all(promises);
+                })
+                .then(() => {
+                    showReceipt('receive', transaction);
                     
-                    // Clear form
-                    document.getElementById('receive-source').value = '';
-                    document.getElementById('receive-receiver').value = '';
+                    // Reset form
+                    document.getElementById('receiveSource').value = '';
+                    document.getElementById('receiveName').value = '';
                     receiveItems = [];
-                    renderReceiveItems();
-                    
-                    // Focus on barcode input
-                    document.getElementById('receive-barcode').focus();
-                    
-                    alert('บันทึกการรับพัสดุเรียบร้อยแล้ว');
+                    renderReceiveItemsTable();
                 })
                 .catch(error => {
-                    console.error('Error submitting receive:', error);
-                    alert('เกิดข้อผิดพลาดในการบันทึกการรับพัสดุ');
+                    alert(`เกิดข้อผิดพลาด: ${error.message}`);
                 });
-        }
+        });
         
         // History Management
         function loadHistoryItems() {
-            const startDate = document.getElementById('history-start-date').value;
-            const endDate = document.getElementById('history-end-date').value;
-            const type = document.getElementById('history-type').value;
-            
-            let query = db.ref('history').orderByChild('timestamp');
-            
-            db.ref('history').orderByChild('timestamp').on('value', (snapshot) => {
-                const historyItems = [];
-                const data = snapshot.val();
-                
-                if (data) {
-                    Object.keys(data).forEach(key => {
-                        const item = {
-                            id: key,
-                            ...data[key]
-                        };
-                        
-                        // Filter by date if provided
-                        if (startDate && item.date < startDate) {
-                            return;
-                        }
-                        
-                        if (endDate) {
-                            const nextDay = moment(endDate).add(1, 'days').format('YYYY-MM-DD');
-                            if (item.date >= nextDay) {
-                                return;
-                            }
-                        }
-                        
-                        // Filter by type if not 'all'
-                        if (type !== 'all' && item.type !== type) {
-                            return;
-                        }
-                        
-                        historyItems.push(item);
-                    });
-                }
-                
-                renderHistoryItems(historyItems);
+            database.ref('transactions').on('value', snapshot => {
+                const transactions = snapshot.val() || {};
+                renderHistoryTable(transactions);
             });
         }
         
-        document.getElementById('history-search').addEventListener('click', function() {
-            loadHistoryItems();
-        });
-        
-        function renderHistoryItems(items) {
-            const tableBody = document.getElementById('history-items');
-            tableBody.innerHTML = '';
+        function renderHistoryTable(transactions) {
+            const tbody = historyTable.querySelector('tbody');
+            tbody.innerHTML = '';
             
-            if (items.length === 0) {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td colspan="6" class="text-center py-4">ไม่พบประวัติการเบิก-รับ</td>
-                `;
-                tableBody.appendChild(row);
-                return;
-            }
+            const type = historyType.value;
+            const date = historyDate.value;
             
-            // Sort by timestamp (newest first)
-            items.sort((a, b) => b.timestamp - a.timestamp);
-            
-            items.forEach(item => {
+            Object.keys(transactions).reverse().forEach(id => {
+                const transaction = transactions[id];
+                
+                // Apply filters
+                if (type !== 'all' && transaction.type !== type) {
+                    return;
+                }
+                
+                if (date && transaction.date !== date) {
+                    return;
+                }
+                
                 const row = document.createElement('tr');
                 
-                let typeText = '';
-                let personText = '';
-                let detailsText = '';
+                const typeText = transaction.type === 'withdraw' ? 'เบิก' : 'รับ';
+                const personName = transaction.name;
+                const dateTime = `${moment(transaction.date).format('DD/MM/YYYY')} ${transaction.time}`;
                 
-                if (item.type === 'withdraw') {
-                    typeText = 'การเบิก';
-                    personText = `ผู้เบิก: ${item.name} (${item.position})`;
-                    detailsText = item.purpose ? `วัตถุประสงค์: ${item.purpose}` : '';
-                } else if (item.type === 'receive') {
-                    typeText = 'การรับ';
-                    personText = `ผู้รับ: ${item.receiver}`;
-                    detailsText = `แหล่งที่มา: ${item.source}`;
+                let details = '';
+                if (transaction.items && transaction.items.length > 0) {
+                    details = `${transaction.items.length} รายการ`;
                 }
                 
                 row.innerHTML = `
-                    <td>${moment(item.date).format('D MMM YYYY')}</td>
-                    <td>${item.time}</td>
+                    <td>${dateTime}</td>
                     <td>${typeText}</td>
-                    <td>${personText}</td>
-                    <td>${detailsText}</td>
+                    <td>${personName}</td>
+                    <td>${details}</td>
                     <td>
-                        <button class="text-blue-600 hover:text-blue-800 mr-2 view-history" data-id="${item.id}" data-type="${item.type}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                        </button>
-                        <button class="text-green-600 hover:text-green-800 print-history" data-id="${item.id}" data-type="${item.type}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                            </svg>
-                        </button>
+                        <button class="btn-primary view-history" data-id="${id}">ดูรายละเอียด</button>
                     </td>
                 `;
                 
-                tableBody.appendChild(row);
+                tbody.appendChild(row);
             });
             
             // Add event listeners
-            document.querySelectorAll('.view-history').forEach(button => {
-                button.addEventListener('click', function() {
-                    const historyId = this.getAttribute('data-id');
-                    const type = this.getAttribute('data-type');
-                    showReceipt(historyId, type);
-                });
-            });
-            
-            document.querySelectorAll('.print-history').forEach(button => {
-                button.addEventListener('click', function() {
-                    const historyId = this.getAttribute('data-id');
-                    const type = this.getAttribute('data-type');
-                    showReceipt(historyId, type, true);
+            document.querySelectorAll('.view-history').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const transaction = transactions[id];
+                    showReceipt(transaction.type, transaction);
                 });
             });
         }
+        
+        historySearchBtn.addEventListener('click', function() {
+            loadHistoryItems();
+        });
         
         // Receipt Management
-        function showReceipt(historyId, type, autoPrint = false) {
-            db.ref(`history/${historyId}`).once('value')
-                .then(snapshot => {
-                    const data = snapshot.val();
-                    
-                    if (!data) {
-                        alert('ไม่พบข้อมูลประวัติ');
-                        return;
-                    }
-                    
-                    const receiptTitle = document.getElementById('receipt-title');
-                    const receiptDate = document.getElementById('receipt-date');
-                    const receiptPerson = document.getElementById('receipt-person');
-                    const receiptDetails = document.getElementById('receipt-details');
-                    const receiptItems = document.getElementById('receipt-items');
-                    
-                    if (type === 'withdraw') {
-                        receiptTitle.textContent = 'ใบเบิกพัสดุ';
-                        receiptPerson.textContent = `ผู้เบิก: ${data.name} (${data.position})`;
-                        receiptDetails.textContent = data.purpose ? `วัตถุประสงค์: ${data.purpose}` : '';
-                    } else if (type === 'receive') {
-                        receiptTitle.textContent = 'ใบรับพัสดุ';
-                        receiptPerson.textContent = `ผู้รับ: ${data.receiver}`;
-                        receiptDetails.textContent = `แหล่งที่มา: ${data.source}`;
-                    }
-                    
-                    receiptDate.textContent = `วันที่ ${moment(data.date).format('D MMMM YYYY')} เวลา ${data.time} น.`;
-                    
-                    // Render items
-                    receiptItems.innerHTML = '';
-                    
-                    if (data.items && data.items.length > 0) {
-                        data.items.forEach((item, index) => {
-                            const row = document.createElement('tr');
-                            row.innerHTML = `
-                                <td class="text-center">${index + 1}</td>
-                                <td>${item.barcode || '-'}</td>
-                                <td>${item.name}</td>
-                                <td class="text-center">${item.quantity}</td>
-                                <td>${item.unit || 'ชิ้น'}</td>
-                            `;
-                            receiptItems.appendChild(row);
-                        });
-                    }
-                    
-                    // Show modal
-                    document.getElementById('receipt-modal').style.display = 'flex';
-                    
-                    // Auto print if requested
-                    if (autoPrint) {
-                        setTimeout(() => {
-                            printReceipt();
-                        }, 500);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading receipt:', error);
-                    alert('เกิดข้อผิดพลาดในการโหลดใบเสร็จ');
-                });
+        function showReceipt(type, data) {
+            const receiptType = document.getElementById('receiptType');
+            const receiptDate = document.getElementById('receiptDate');
+            const receiptPerson = document.getElementById('receiptPerson');
+            const receiptPosition = document.getElementById('receiptPosition');
+            const receiptPurpose = document.getElementById('receiptPurpose');
+            const receiptSource = document.getElementById('receiptSource');
+            const receiptItems = document.getElementById('receiptItems');
+            
+            const receiptPositionContainer = document.getElementById('receiptPositionContainer');
+            const receiptPurposeContainer = document.getElementById('receiptPurposeContainer');
+            const receiptSourceContainer = document.getElementById('receiptSourceContainer');
+            
+            // Set receipt type and title
+            if (type === 'withdraw') {
+                receiptType.textContent = 'ใบเบิกวัสดุ';
+                receiptPositionContainer.style.display = 'block';
+                receiptPurposeContainer.style.display = 'block';
+                receiptSourceContainer.style.display = 'none';
+            } else {
+                receiptType.textContent = 'ใบรับวัสดุ';
+                receiptPositionContainer.style.display = 'none';
+                receiptPurposeContainer.style.display = 'none';
+                receiptSourceContainer.style.display = 'block';
+            }
+            
+            // Set receipt details
+            receiptDate.textContent = `วันที่: ${moment(data.date).format('DD/MM/YYYY')} เวลา: ${data.time}`;
+            receiptPerson.textContent = data.name;
+            
+            if (type === 'withdraw') {
+                receiptPosition.textContent = data.position;
+                receiptPurpose.textContent = data.purpose;
+            } else {
+                receiptSource.textContent = data.source;
+            }
+            
+            // Set receipt items
+            receiptItems.innerHTML = '';
+            data.items.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.barcode}</td>
+                    <td>${item.name}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.unit}</td>
+                `;
+                receiptItems.appendChild(row);
+            });
+            
+            // Show receipt modal
+            receiptModal.style.display = 'block';
         }
         
-        document.getElementById('receipt-close').addEventListener('click', function() {
-            document.getElementById('receipt-modal').style.display = 'none';
+        printReceiptBtn.addEventListener('click', function() {
+            window.print();
         });
         
-        document.getElementById('receipt-print').addEventListener('click', function() {
-            printReceipt();
-        });
-        
-        function printReceipt() {
-            const receiptContent = document.getElementById('receipt-content');
-            const printWindow = window.open('', '_blank');
-            
-            printWindow.document.write(`
-                <html>
-                <head>
-                    <title>ใบเสร็จ - กลุ่มงานระบาดวิทยา</title>
-                    <style>
-                        body {
-                            font-family: 'Sarabun', sans-serif;
-                            padding: 20px;
-                        }
-                        .receipt-header {
-                            text-align: center;
-                            margin-bottom: 20px;
-                        }
-                        .receipt-table {
-                            width: 100%;
-                            border-collapse: collapse;
-                            margin-bottom: 20px;
-                        }
-                        .receipt-table th, .receipt-table td {
-                            border: 1px solid #000;
-                            padding: 8px;
-                        }
-                        .receipt-footer {
-                            display: flex;
-                            justify-content: space-between;
-                            margin-top: 30px;
-                        }
-                        .signature {
-                            text-align: center;
-                            width: 45%;
-                        }
-                        .signature-line {
-                            border-bottom: 1px solid #000;
-                            margin: 50px 0 10px;
-                        }
-                    </style>
-                </head>
-                <body>
-                    ${receiptContent.innerHTML}
-                </body>
-                </html>
-            `);
-            
-            printWindow.document.close();
-            printWindow.focus();
-            
-            setTimeout(() => {
-                printWindow.print();
-                printWindow.close();
-            }, 500);
-        }
-        
-        document.getElementById('receipt-pdf').addEventListener('click', function() {
-            saveReceiptAsPDF();
-        });
-        
-        function saveReceiptAsPDF() {
+        saveReceiptPdfBtn.addEventListener('click', function() {
             const { jsPDF } = window.jspdf;
-            const receiptContent = document.getElementById('receipt-content');
+            const receiptContent = document.getElementById('receiptContent');
             
             html2canvas(receiptContent).then(canvas => {
                 const imgData = canvas.toDataURL('image/png');
@@ -1697,37 +1330,15 @@
                 pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
                 pdf.save('receipt.pdf');
             });
-        }
+        });
         
-        // Initialize
-        loadStockItems();
-        renderWithdrawItems();
-        renderReceiveItems();
-        
-        // Error message helper
-        function getErrorMessage(errorCode) {
-            switch(errorCode) {
-                case 'auth/invalid-email':
-                    return 'รูปแบบอีเมลไม่ถูกต้อง';
-                case 'auth/user-disabled':
-                    return 'บัญชีผู้ใช้นี้ถูกระงับการใช้งาน';
-                case 'auth/user-not-found':
-                    return 'ไม่พบบัญชีผู้ใช้นี้';
-                case 'auth/wrong-password':
-                    return 'รหัสผ่านไม่ถูกต้อง';
-                case 'auth/email-already-in-use':
-                    return 'อีเมลนี้ถูกใช้งานแล้ว';
-                case 'auth/weak-password':
-                    return 'รหัสผ่านไม่ปลอดภัย กรุณาใช้รหัสผ่านที่มีความยาวอย่างน้อย 6 ตัวอักษร';
-                default:
-                    return 'เกิดข้อผิดพลาด: ' + errorCode;
+        // Prevent page refresh issues
+        window.addEventListener('beforeunload', function(e) {
+            if (withdrawItems.length > 0 || receiveItems.length > 0) {
+                e.preventDefault();
+                e.returnValue = '';
             }
-        }
-
-        // Prevent form resubmission on page refresh
-        if (window.history.replaceState) {
-            window.history.replaceState(null, null, window.location.href);
-        }
+        });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9544eb463132f92c',t:'MTc1MDY5MTQ5OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9545120ba1c03e08',t:'MTc1MDY5MzA4Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
