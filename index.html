@@ -14,6 +14,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/locale/th.js"></script>
+    <!-- เพิ่ม SheetJS (xlsx) สำหรับการส่งออก Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
         
@@ -70,6 +72,19 @@
         
         .btn-danger:hover {
             background-color: #B91C1C;
+        }
+        
+        .btn-success {
+            background-color: #10B981;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-success:hover {
+            background-color: #059669;
         }
         
         .nav-link {
@@ -252,6 +267,7 @@
                         <h2 class="text-xl font-bold text-[#0F4C3A]">รายการวัสดุในคลัง</h2>
                         <div class="flex space-x-2">
                             <input type="text" id="stockSearch" placeholder="ค้นหาวัสดุ..." class="form-input mb-0">
+                            <button id="exportExcelBtn" class="btn-success">ส่งออก Excel</button>
                             <button id="addItemBtn" class="btn-primary">เพิ่มวัสดุใหม่</button>
                         </div>
                     </div>
@@ -487,10 +503,12 @@
                     
                     <div class="flex justify-between mt-8">
                         <div>
-                            <p>ลงชื่อผู้จ่าย________________</p>
+                            <p>ลงชื่อ................................................ผู้ดำเนินการ</p>
+                            <p>(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</p>
                         </div>
                         <div>
-                            <p>ลงชื่อเบิก________________</p>
+                            <p>ลงชื่อ................................................ผู้รับรอง</p>
+                            <p>(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</p>
                         </div>
                     </div>
                 </div>
@@ -543,6 +561,7 @@
         const stockSearch = document.getElementById('stockSearch');
         const addItemBtn = document.getElementById('addItemBtn');
         const stockTable = document.getElementById('stockTable');
+        const exportExcelBtn = document.getElementById('exportExcelBtn');
         
         // Withdraw page elements
         const withdrawForm = document.getElementById('withdrawForm');
@@ -1330,6 +1349,77 @@
             });
         });
         
+        // Export to Excel functionality
+        exportExcelBtn.addEventListener('click', function() {
+            exportStockToExcel();
+        });
+        
+        function exportStockToExcel() {
+            // Create worksheet data
+            const worksheet = XLSX.utils.aoa_to_sheet([
+                ['รายงานสต๊อกวัสดุ - กลุ่มงานระบาดวิทยา'],
+                ['วันที่พิมพ์: ' + moment().format('DD/MM/YYYY HH:mm:ss')],
+                [''],
+                ['รหัสบาร์โค้ด', 'รายการวัสดุ', 'จำนวนคงเหลือ', 'หน่วยนับ', 'วันหมดอายุ', 'สถานะ']
+            ]);
+            
+            // Add stock items to worksheet
+            const stockData = [];
+            Object.keys(stockItems).forEach(id => {
+                const item = stockItems[id];
+                
+                // Check expiry status
+                let expiryStatus = '';
+                
+                if (item.expiry) {
+                    const expiryDate = new Date(item.expiry);
+                    const today = new Date();
+                    const daysUntilExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+                    
+                    if (daysUntilExpiry <= 0) {
+                        expiryStatus = 'หมดอายุแล้ว';
+                    } else if (daysUntilExpiry <= 30) {
+                        expiryStatus = `ใกล้หมดอายุ (${daysUntilExpiry} วัน)`;
+                    } else {
+                        expiryStatus = 'ปกติ';
+                    }
+                } else {
+                    expiryStatus = 'ไม่มีวันหมดอายุ';
+                }
+                
+                stockData.push([
+                    item.barcode,
+                    item.name,
+                    item.quantity,
+                    item.unit,
+                    item.expiry ? moment(item.expiry).format('DD/MM/YYYY') : '-',
+                    expiryStatus
+                ]);
+            });
+            
+            // Append data to worksheet
+            XLSX.utils.sheet_add_aoa(worksheet, stockData, { origin: 4 });
+            
+            // Create workbook and add worksheet
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'สต๊อกวัสดุ');
+            
+            // Set column widths
+            const cols = [
+                { wch: 15 }, // รหัสบาร์โค้ด
+                { wch: 30 }, // รายการวัสดุ
+                { wch: 15 }, // จำนวนคงเหลือ
+                { wch: 10 }, // หน่วยนับ
+                { wch: 15 }, // วันหมดอายุ
+                { wch: 20 }  // สถานะ
+            ];
+            worksheet['!cols'] = cols;
+            
+            // Generate Excel file
+            const today = moment().format('YYYYMMDD_HHmmss');
+            XLSX.writeFile(workbook, `รายงานสต๊อกวัสดุ_${today}.xlsx`);
+        }
+        
         // Prevent page refresh issues
         window.addEventListener('beforeunload', function(e) {
             if (withdrawItems.length > 0 || receiveItems.length > 0) {
@@ -1338,5 +1428,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9545120ba1c03e08',t:'MTc1MDY5MzA4Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'95487294e7bc45c0',t:'MTc1MDcyODQ5Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
