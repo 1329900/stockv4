@@ -415,7 +415,7 @@
                                 <tr>
                                     <th>วันที่-เวลา</th>
                                     <th>ประเภท</th>
-                                    <th>ผู้ดำเนินการ</th>
+                                    <th>ผู้เบิก</th>
                                     <th>รายละเอียด</th>
                                     <th>จัดการ</th>
                                 </tr>
@@ -481,7 +481,7 @@
                     </div>
                     
                     <div class="mb-4">
-                        <p><strong>ผู้ดำเนินการ:</strong> <span id="receiptPerson"></span></p>
+                        <p><strong>ผู้เบิก:</strong> <span id="receiptPerson"></span></p>
                         <p id="receiptPositionContainer"><strong>ตำแหน่ง:</strong> <span id="receiptPosition"></span></p>
                         <p id="receiptPurposeContainer"><strong>วัตถุประสงค์:</strong> <span id="receiptPurpose"></span></p>
                         <p id="receiptSourceContainer"><strong>แหล่งที่มา:</strong> <span id="receiptSource"></span></p>
@@ -1337,7 +1337,7 @@
             
             html2canvas(receiptContent).then(canvas => {
                 const imgData = canvas.toDataURL('image/png');
-                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdf = new jsPDF('p', 'mm', 'a5');
                 const imgProps = pdf.getImageProperties(imgData);
                 const pdfWidth = pdf.internal.pageSize.getWidth();
                 const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
