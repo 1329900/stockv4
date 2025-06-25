@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบจัดการคลังวัสดุ - กลุ่มงานระบาดวิทยา</title>
+    <title>ระบบจัดการคลังวัสดุสำนักงาน - กลุ่มงานระบาดวิทยา</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -503,7 +503,7 @@
                     
                     <div class="flex justify-between mt-8">
                         <div>
-                            <p>ลงชื่อจ่าย___________________</p>
+                            <p>ลงชื่อผู้จ่าย___________________</p>
                         </div>
                         <div>
                             <p>ลงชื่อผู้เบิก___________________</p>
@@ -1288,7 +1288,7 @@
             
             // Set receipt type and title
             if (type === 'withdraw') {
-                receiptType.textContent = 'ใบเบิกวัสดุ';
+                receiptType.textContent = 'ใบเบิกวัสดุสำนักงาน';
                 receiptPositionContainer.style.display = 'block';
                 receiptPurposeContainer.style.display = 'block';
                 receiptSourceContainer.style.display = 'none';
